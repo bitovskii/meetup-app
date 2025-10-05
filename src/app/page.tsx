@@ -1,138 +1,136 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EventCard from "@/components/EventCard";
 import GroupsSection from "@/components/GroupsSection";
 import Navigation from "@/components/Navigation";
+import { useEvents } from "@/hooks/useSupabase";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState<'events' | 'groups'>('events');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const { events, loading: eventsLoading, error: eventsError } = useEvents();
 
-  const events = [
-    {
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=225&fit=crop&auto=format",
-      title: "React Developers Meetup",
-      date: "October 15, 2025",
-      time: "6:00 PM",
-      place: "Tech Hub, Downtown",
-      description: "Join us for an exciting evening of React discussions, networking, and hands-on coding sessions. We'll explore the latest React features, best practices, and share experiences from real-world projects.",
-      members: 42
-    },
-    {
-      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=225&fit=crop&auto=format",
-      title: "AI & Machine Learning Workshop",
-      date: "October 18, 2025",
-      time: "2:00 PM",
-      place: "Innovation Center",
-      description: "Dive deep into artificial intelligence and machine learning concepts. Perfect for beginners and intermediate developers looking to expand their skillset.",
-      members: 67
-    },
-    {
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=225&fit=crop&auto=format",
-      title: "Startup Pitch Night",
-      date: "October 22, 2025",
-      time: "7:30 PM",
-      place: "Business District Hall",
-      description: "Watch promising startups pitch their ideas to investors and entrepreneurs. Network with like-minded individuals and discover the next big thing.",
-      members: 128
-    },
-    {
-      image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=225&fit=crop&auto=format",
-      title: "Photography Walk",
-      date: "October 25, 2025",
-      time: "10:00 AM",
-      place: "Central Park",
-      description: "Capture the beauty of autumn with fellow photography enthusiasts. All skill levels welcome. Bring your camera and explore new techniques.",
-      members: 34
-    },
-    {
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=225&fit=crop&auto=format",
-      title: "Book Club Discussion",
-      date: "November 2, 2025",
-      time: "6:30 PM",
-      place: "Community Library",
-      description: "Monthly book club meeting discussing 'The Future of Work'. Join our passionate readers for insightful discussions and coffee.",
-      members: 23
-    },
-    {
-      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=225&fit=crop&auto=format",
-      title: "Cooking Class: Italian Cuisine",
-      date: "November 5, 2025",
-      time: "4:00 PM",
-      place: "Culinary Studio",
-      description: "Learn to make authentic Italian pasta and sauces from a professional chef. All ingredients provided. Perfect for food lovers!",
-      members: 18
-    },
-    {
-      image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=225&fit=crop&auto=format",
-      title: "Cybersecurity Conference",
-      date: "November 8, 2025",
-      time: "9:00 AM",
-      place: "Convention Center",
-      description: "Stay ahead of cyber threats with expert talks on the latest security trends, tools, and best practices. Essential for IT professionals.",
-      members: 245
-    },
-    {
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=225&fit=crop&auto=format",
-      title: "Yoga & Mindfulness Session",
-      date: "November 12, 2025",
-      time: "8:00 AM",
-      place: "Wellness Studio",
-      description: "Start your day with peaceful yoga and mindfulness meditation. Suitable for all levels. Bring your own mat or rent one at the venue.",
-      members: 31
-    },
-    {
-      image: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=225&fit=crop&auto=format",
-      title: "Board Game Tournament",
-      date: "November 15, 2025",
-      time: "1:00 PM",
-      place: "Game Café",
-      description: "Compete in friendly board game tournaments featuring classic and modern games. Prizes for winners and fun for everyone!",
-      members: 56
-    },
-    {
-      image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=225&fit=crop&auto=format",
-      title: "Climate Action Workshop",
-      date: "November 20, 2025",
-      time: "3:00 PM",
-      place: "Environmental Center",
-      description: "Learn practical ways to reduce your carbon footprint and make a positive environmental impact. Interactive sessions with local activists.",
-      members: 89
+  // Check for auth errors in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error) {
+      switch (error) {
+        case 'auth_failed':
+          setAuthError('Authentication failed. Please try again.');
+          break;
+        case 'no_session':
+          setAuthError('Session not found. Please sign in again.');
+          break;
+        default:
+          setAuthError('An error occurred during authentication.');
+      }
+      
+      // Clear error from URL after 5 seconds
+      setTimeout(() => {
+        setAuthError(null);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 5000);
     }
-  ];
+  }, []);
 
-  const renderEventsSection = () => (
-    <div className="min-h-screen pt-24 p-8 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-          Upcoming Events
-        </h1>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
-          {events.map((event) => (
-            <EventCard
-              key={`${event.title}-${event.date}`}
-              image={event.image}
-              title={event.title}
-              date={event.date}
-              time={event.time}
-              place={event.place}
-              description={event.description}
-              members={event.members}
-            />
-          ))}
+  const renderEventsSection = () => {
+    if (eventsLoading) {
+      return (
+        <div className="min-h-screen pt-24 p-8 bg-gray-50 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+              Discover Events
+            </h1>
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Loading events...</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (eventsError) {
+      return (
+        <div className="min-h-screen pt-24 p-8 bg-gray-50 dark:bg-gray-900">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+              Discover Events
+            </h1>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="text-red-500 mb-2">⚠️ Error loading events</div>
+                <p className="text-gray-600 dark:text-gray-400">{eventsError}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen pt-24 p-8 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+            Discover Events
+          </h1>
+          
+          {events.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 dark:text-gray-400">No events found. Check back later!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+              {events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  image={event.image}
+                  title={event.title}
+                  date={event.date}
+                  time={event.time}
+                  place={event.place}
+                  description={event.description}
+                  members={event.members}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation 
         activeSection={activeSection} 
         onSectionChange={setActiveSection} 
       />
+      
+      {/* Auth Error Display */}
+      {authError && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-600 rounded-lg px-4 py-3 shadow-lg">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-red-700 dark:text-red-400 text-sm">{authError}</span>
+            <button 
+              onClick={() => setAuthError(null)}
+              className="ml-3 text-red-500 hover:text-red-700 dark:hover:text-red-300"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+      
       {activeSection === 'events' ? renderEventsSection() : <GroupsSection />}
-    </>
+    </div>
   );
 }
