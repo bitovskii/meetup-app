@@ -1,103 +1,138 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import EventCard from "@/components/EventCard";
+import GroupsSection from "@/components/GroupsSection";
+import Navigation from "@/components/Navigation";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [activeSection, setActiveSection] = useState<'events' | 'groups'>('events');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const events = [
+    {
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=225&fit=crop&auto=format",
+      title: "React Developers Meetup",
+      date: "October 15, 2025",
+      time: "6:00 PM",
+      place: "Tech Hub, Downtown",
+      description: "Join us for an exciting evening of React discussions, networking, and hands-on coding sessions. We'll explore the latest React features, best practices, and share experiences from real-world projects.",
+      members: 42
+    },
+    {
+      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=225&fit=crop&auto=format",
+      title: "AI & Machine Learning Workshop",
+      date: "October 18, 2025",
+      time: "2:00 PM",
+      place: "Innovation Center",
+      description: "Dive deep into artificial intelligence and machine learning concepts. Perfect for beginners and intermediate developers looking to expand their skillset.",
+      members: 67
+    },
+    {
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=225&fit=crop&auto=format",
+      title: "Startup Pitch Night",
+      date: "October 22, 2025",
+      time: "7:30 PM",
+      place: "Business District Hall",
+      description: "Watch promising startups pitch their ideas to investors and entrepreneurs. Network with like-minded individuals and discover the next big thing.",
+      members: 128
+    },
+    {
+      image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=225&fit=crop&auto=format",
+      title: "Photography Walk",
+      date: "October 25, 2025",
+      time: "10:00 AM",
+      place: "Central Park",
+      description: "Capture the beauty of autumn with fellow photography enthusiasts. All skill levels welcome. Bring your camera and explore new techniques.",
+      members: 34
+    },
+    {
+      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=225&fit=crop&auto=format",
+      title: "Book Club Discussion",
+      date: "November 2, 2025",
+      time: "6:30 PM",
+      place: "Community Library",
+      description: "Monthly book club meeting discussing 'The Future of Work'. Join our passionate readers for insightful discussions and coffee.",
+      members: 23
+    },
+    {
+      image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=225&fit=crop&auto=format",
+      title: "Cooking Class: Italian Cuisine",
+      date: "November 5, 2025",
+      time: "4:00 PM",
+      place: "Culinary Studio",
+      description: "Learn to make authentic Italian pasta and sauces from a professional chef. All ingredients provided. Perfect for food lovers!",
+      members: 18
+    },
+    {
+      image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=225&fit=crop&auto=format",
+      title: "Cybersecurity Conference",
+      date: "November 8, 2025",
+      time: "9:00 AM",
+      place: "Convention Center",
+      description: "Stay ahead of cyber threats with expert talks on the latest security trends, tools, and best practices. Essential for IT professionals.",
+      members: 245
+    },
+    {
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=225&fit=crop&auto=format",
+      title: "Yoga & Mindfulness Session",
+      date: "November 12, 2025",
+      time: "8:00 AM",
+      place: "Wellness Studio",
+      description: "Start your day with peaceful yoga and mindfulness meditation. Suitable for all levels. Bring your own mat or rent one at the venue.",
+      members: 31
+    },
+    {
+      image: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=225&fit=crop&auto=format",
+      title: "Board Game Tournament",
+      date: "November 15, 2025",
+      time: "1:00 PM",
+      place: "Game Café",
+      description: "Compete in friendly board game tournaments featuring classic and modern games. Prizes for winners and fun for everyone!",
+      members: 56
+    },
+    {
+      image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=225&fit=crop&auto=format",
+      title: "Climate Action Workshop",
+      date: "November 20, 2025",
+      time: "3:00 PM",
+      place: "Environmental Center",
+      description: "Learn practical ways to reduce your carbon footprint and make a positive environmental impact. Interactive sessions with local activists.",
+      members: 89
+    }
+  ];
+
+  const renderEventsSection = () => (
+    <div className="min-h-screen pt-24 p-8 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+          Upcoming Events
+        </h1>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+          {events.map((event) => (
+            <EventCard
+              key={`${event.title}-${event.date}`}
+              image={event.image}
+              title={event.title}
+              date={event.date}
+              time={event.time}
+              place={event.place}
+              description={event.description}
+              members={event.members}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
+  );
+
+  return (
+    <>
+      <Navigation 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+      />
+      {activeSection === 'events' ? renderEventsSection() : <GroupsSection />}
+    </>
   );
 }
