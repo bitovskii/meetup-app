@@ -1,25 +1,32 @@
 import Image from 'next/image';
 
 interface GroupCardProps {
-  image: string;
-  name: string;
-  members: number;
-  description: string;
-  category: string;
-  location: string;
+  readonly image: string;
+  readonly name: string;
+  readonly members: number;
+  readonly description: string;
+  readonly category: string;
+  readonly location: string;
 }
 
 function GroupCard({ image, name, members, description, category, location }: GroupCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden max-w-xs w-full">
+    <div className="group bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden max-w-xs w-full cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25 hover:-translate-y-2 relative">
+      {/* Magical glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-pink-500/0 to-blue-500/0 group-hover:from-purple-500/10 group-hover:via-pink-500/5 group-hover:to-blue-500/10 rounded-lg transition-all duration-500"></div>
+      
+      {/* Shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
       {/* Group Image */}
-      <div className="relative w-full aspect-video">
+      <div className="relative w-full aspect-video overflow-hidden">
         <Image
           src={image}
           alt={name}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
+        {/* Image overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
       
       {/* Card Content */}
@@ -73,7 +80,7 @@ function GroupCard({ image, name, members, description, category, location }: Gr
 export default function GroupsSection() {
   const groups = [
     {
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=225&fit=crop&auto=format",
+      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=225&fit=crop&auto=format",
       name: "Tech Innovators",
       members: 1247,
       description: "A community of technology enthusiasts, developers, and innovators sharing knowledge and building amazing projects together.",
@@ -81,7 +88,7 @@ export default function GroupsSection() {
       location: "San Francisco, CA"
     },
     {
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=225&fit=crop&auto=format",
+      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=225&fit=crop&auto=format",
       name: "Creative Entrepreneurs",
       members: 892,
       description: "Connect with creative minds who are building businesses around their passions. Share ideas, get feedback, and grow together.",
@@ -89,7 +96,7 @@ export default function GroupsSection() {
       location: "New York, NY"
     },
     {
-      image: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&h=225&fit=crop&auto=format",
+      image: "https://images.unsplash.com/photo-1606983340126-99ab4feaa64a?w=400&h=225&fit=crop&auto=format",
       name: "Urban Photography Club",
       members: 567,
       description: "Capture the essence of city life through photography. Weekly photo walks, workshops, and portfolio reviews.",
