@@ -14,6 +14,14 @@ export function useEvents() {
   const fetchEvents = async () => {
     try {
       setLoading(true)
+      
+      // Skip if running during static generation or missing env vars
+      if (typeof window === 'undefined' || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        setEvents([])
+        setLoading(false)
+        return
+      }
+      
       const { data, error } = await supabase
         .from('events')
         .select('*')
@@ -108,6 +116,14 @@ export function useGroups() {
   const fetchGroups = async () => {
     try {
       setLoading(true)
+      
+      // Skip if running during static generation or missing env vars
+      if (typeof window === 'undefined' || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        setGroups([])
+        setLoading(false)
+        return
+      }
+      
       const { data, error } = await supabase
         .from('groups')
         .select('*')
@@ -197,6 +213,13 @@ export function useUserProfile(userId?: string) {
 
   const fetchProfile = async () => {
     if (!userId) {
+      setProfile(null)
+      setLoading(false)
+      return
+    }
+
+    // Skip if running during static generation or missing env vars
+    if (typeof window === 'undefined' || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
       setProfile(null)
       setLoading(false)
       return

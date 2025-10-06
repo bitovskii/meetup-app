@@ -32,6 +32,26 @@ export default function SetupCheckPage() {
     try {
       setLoading(true);
       
+      // Check if we're in the browser and have environment variables
+      if (typeof window === 'undefined') {
+        setCheckResults({
+          supabaseConnection: false,
+          googleProvider: false,
+          error: 'Environment check only available in browser'
+        });
+        return;
+      }
+      
+      // Check if environment variables are available
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        setCheckResults({
+          supabaseConnection: false,
+          googleProvider: false,
+          error: 'Missing Supabase environment variables'
+        });
+        return;
+      }
+      
       // Test Supabase connection
       const { error } = await supabase.auth.getSession();
       const supabaseConnection = !error;
