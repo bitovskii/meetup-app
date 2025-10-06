@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
 
 export default function SignInPage() {
   const [loading, setLoading] = useState(false);
@@ -138,7 +139,7 @@ export default function SignInPage() {
 
         {/* Back to Home */}
         <div className="text-center space-y-2">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
           >
@@ -146,9 +147,9 @@ export default function SignInPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Home
-          </a>
+          </Link>
           <div className="text-gray-400 dark:text-gray-500">•</div>
-          <a
+          <Link
             href="/setup-check"
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-sm"
           >
@@ -156,7 +157,7 @@ export default function SignInPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Check Setup Status
-          </a>
+          </Link>
         </div>
       </div>
     </div>

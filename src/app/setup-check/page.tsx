@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
 
 const StatusIcon = ({ status }: { status: boolean }) => (
   status ? (
@@ -207,12 +208,12 @@ export default function SetupCheckPage() {
               )}
               Recheck Setup
             </button>
-            <a
-              href="/"
-              className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors text-center"
-            >
-              Back to App
-            </a>
+          <Link
+            href="/"
+            className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors text-center"
+          >
+            Back to App
+          </Link>
           </div>
         </div>
       </div>
