@@ -13,6 +13,54 @@ interface TelegramAuthData {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
+// Handle GET requests (redirect method)
+export async function GET(request: NextRequest) {
+  try {
+    if (!BOT_TOKEN) {
+      console.error('TELEGRAM_BOT_TOKEN is not set');
+      return NextResponse.redirect(new URL('/auth?error=config', request.url));
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    const authData: TelegramAuthData = {
+      id: parseInt(searchParams.get('id') || '0'),
+      first_name: searchParams.get('first_name') || '',
+      last_name: searchParams.get('last_name') || undefined,
+      username: searchParams.get('username') || undefined,
+      photo_url: searchParams.get('photo_url') || undefined,
+      auth_date: parseInt(searchParams.get('auth_date') || '0'),
+      hash: searchParams.get('hash') || ''
+    };
+
+    console.log('Telegram auth data received:', authData);
+    
+    // Verify Telegram authentication data
+    const isValid = verifyTelegramAuthData(authData, BOT_TOKEN);
+    
+    if (isValid) {
+      console.log('Telegram user authenticated:', {
+        id: authData.id,
+        name: `${authData.first_name} ${authData.last_name || ''}`.trim(),
+        username: authData.username
+      });
+
+      // Create success URL with user data
+      const successUrl = new URL('/auth', request.url);
+      successUrl.searchParams.set('telegram_auth', 'success');
+      successUrl.searchParams.set('user_data', JSON.stringify(authData));
+      
+      return NextResponse.redirect(successUrl);
+    } else {
+      console.error('Invalid Telegram auth data');
+      return NextResponse.redirect(new URL('/auth?error=invalid', request.url));
+    }
+  } catch (error: unknown) {
+    console.error('Telegram auth verification error:', error);
+    return NextResponse.redirect(new URL('/auth?error=verification', request.url));
+  }
+}
+
+// Handle POST requests (callback method - keeping for backward compatibility)
 export async function POST(request: NextRequest) {
   try {
     if (!BOT_TOKEN) {
