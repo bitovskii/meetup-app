@@ -32,7 +32,7 @@ export default function TelegramAuth({
 
   useEffect(() => {
     // Create global callback function
-    (window as any).onTelegramAuth = async (user: TelegramUser) => {
+    (window as unknown as { onTelegramAuth: (user: TelegramUser) => Promise<void> }).onTelegramAuth = async (user: TelegramUser) => {
       try {
         console.log('Telegram auth received:', user);
         onAuth(user);
@@ -60,22 +60,23 @@ export default function TelegramAuth({
       setIsLoading(false);
     };
 
-    script.onerror = (error) => {
+    script.onerror = (error: Event | string) => {
       console.error('Failed to load Telegram widget script:', error);
       setIsLoading(false);
       onError('Failed to load Telegram widget');
     };
 
-    if (containerRef.current) {
-      containerRef.current.appendChild(script);
+    const container = containerRef.current;
+    if (container) {
+      container.appendChild(script);
     }
 
     return () => {
       // Cleanup
-      if (containerRef.current && script.parentNode) {
+      if (container && script.parentNode) {
         script.parentNode.removeChild(script);
       }
-      delete (window as any).onTelegramAuth;
+      delete (window as unknown as { onTelegramAuth?: unknown }).onTelegramAuth;
     };
   }, [botName, onAuth, onError, size]);
 

@@ -37,7 +37,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function verifyTelegramAuthData(authData: any, botToken: string): boolean {
+interface TelegramAuthData {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
+function verifyTelegramAuthData(authData: TelegramAuthData, botToken: string): boolean {
   try {
     const { hash, ...data } = authData;
     
@@ -48,7 +58,7 @@ function verifyTelegramAuthData(authData: any, botToken: string): boolean {
     // Create data check string
     const dataCheckString = Object.keys(data)
       .sort((a, b) => a.localeCompare(b))
-      .map(key => `${key}=${data[key]}`)
+      .map(key => `${key}=${data[key as keyof typeof data]}`)
       .join('\n');
     
     // Create secret key using SHA256
@@ -67,7 +77,7 @@ function verifyTelegramAuthData(authData: any, botToken: string): boolean {
     const isHashValid = calculatedHash === hash;
     
     // Check auth_date (should be within last 24 hours for security)
-    const authDate = parseInt(data.auth_date);
+    const authDate = data.auth_date;
     const currentTime = Math.floor(Date.now() / 1000);
     const timeDiff = currentTime - authDate;
     const isTimeValid = timeDiff < 86400; // 24 hours in seconds

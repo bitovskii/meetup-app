@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import type { NavigationProps, NavigationSection } from '@/types';
 
@@ -80,9 +81,11 @@ export default function Navigation({ activeSection, onSectionChange }: Readonly<
                   aria-haspopup="true"
                 >
                   {user?.photoUrl ? (
-                    <img 
+                    <Image 
                       src={user.photoUrl} 
                       alt="Profile" 
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full"
                     />
                   ) : (
@@ -183,9 +186,11 @@ export default function Navigation({ activeSection, onSectionChange }: Readonly<
                   <div className="space-y-2">
                     <div className="flex items-center px-3 py-2">
                       {user?.photoUrl ? (
-                        <img 
+                        <Image 
                           src={user.photoUrl} 
                           alt="Profile" 
+                          width={32}
+                          height={32}
                           className="w-8 h-8 rounded-full mr-3"
                         />
                       ) : (

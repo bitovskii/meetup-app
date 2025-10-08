@@ -9,7 +9,20 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Google user profile images
+      // Telegram user profile images
+      {
+        protocol: 'https',
+        hostname: 'cdn4.telegram-cdn.org',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn1.telegram-cdn.org',
+        port: '',
+        pathname: '/**',
+      },
+      // Google user profile images (keeping for potential future use)
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',

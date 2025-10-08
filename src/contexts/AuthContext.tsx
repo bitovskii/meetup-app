@@ -4,6 +4,16 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo } fr
 
 type AuthProvider = 'telegram';
 
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 interface User {
   id: number;
   firstName: string;
@@ -16,7 +26,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (userData: any, provider: AuthProvider) => void;
+  signIn: (userData: TelegramUser, provider: AuthProvider) => void;
   signOut: () => void;
   isAuthenticated: boolean;
 }
@@ -41,7 +51,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setIsLoading(false);
   }, []);
 
-  const signIn = (userData: any, provider: AuthProvider) => {
+  const signIn = (userData: TelegramUser, provider: AuthProvider) => {
     if (provider === 'telegram') {
       const user: User = {
         id: userData.id,
