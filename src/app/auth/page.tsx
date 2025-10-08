@@ -1,44 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import TelegramAuth from '@/components/TelegramAuth';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TelegramUser } from '@/components/TelegramAuth';
 
-export default function SignIn() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { signIn } = useAuth();
-
-  // Handle redirect from Telegram auth
-  useEffect(() => {
-    const telegramAuth = searchParams.get('telegram_auth');
-    const userData = searchParams.get('user_data');
-    const authError = searchParams.get('error');
-
-    if (telegramAuth === 'success' && userData) {
-      try {
-        const user: TelegramUser = JSON.parse(userData);
-        handleTelegramAuth(user);
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        setError('Authentication failed. Please try again.');
-      }
-    } else if (authError) {
-      const errorMessages = {
-        config: 'Server configuration error. Please try again later.',
-        invalid: 'Invalid authentication data. Please try again.',
-        verification: 'Verification failed. Please try again.'
-      };
-      setError(errorMessages[authError as keyof typeof errorMessages] || 'Authentication failed.');
-    }
-  }, [searchParams]);
-
-export default function SignIn() {
+function AuthContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -67,6 +36,30 @@ export default function SignIn() {
     setError(errorMessage);
     setIsLoading(false);
   };
+
+  // Handle redirect from Telegram auth
+  useEffect(() => {
+    const telegramAuth = searchParams.get('telegram_auth');
+    const userData = searchParams.get('user_data');
+    const authError = searchParams.get('error');
+
+    if (telegramAuth === 'success' && userData) {
+      try {
+        const user: TelegramUser = JSON.parse(userData);
+        handleTelegramAuth(user);
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+        setError('Authentication failed. Please try again.');
+      }
+    } else if (authError) {
+      const errorMessages = {
+        config: 'Server configuration error. Please try again later.',
+        invalid: 'Invalid authentication data. Please try again.',
+        verification: 'Verification failed. Please try again.'
+      };
+      setError(errorMessages[authError as keyof typeof errorMessages] || 'Authentication failed.');
+    }
+  }, [searchParams, handleTelegramAuth]);
 
   // Handle redirect from Telegram auth
   useEffect(() => {
@@ -191,5 +184,13 @@ export default function SignIn() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }
