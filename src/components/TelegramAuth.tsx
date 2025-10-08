@@ -31,6 +31,9 @@ export default function TelegramAuth({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('TelegramAuth: Initializing widget for bot:', 'meetup_auth_bot');
+    console.log('TelegramAuth: Current domain:', window.location.hostname);
+    
     // Create global callback function
     (window as unknown as { onTelegramAuth: (user: TelegramUser) => Promise<void> }).onTelegramAuth = async (user: TelegramUser) => {
       try {
@@ -46,15 +49,16 @@ export default function TelegramAuth({
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.setAttribute('data-telegram-login', 'meetup_auth_bot');
-    script.setAttribute('data-size', size);
+    script.setAttribute('data-size', 'large');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-    script.setAttribute('data-request-access', 'write');
     script.async = true;
 
     console.log('Loading Telegram widget with bot:', 'meetup_auth_bot');
 
     script.onload = () => {
       console.log('Telegram widget script loaded successfully');
+      console.log('Current URL:', window.location.href);
+      console.log('Widget container:', containerRef.current);
       setIsLoading(false);
     };
 
