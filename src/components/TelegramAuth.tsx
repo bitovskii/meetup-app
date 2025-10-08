@@ -50,7 +50,7 @@ export default function TelegramAuth({
     script.setAttribute('data-radius', '8');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.setAttribute('data-request-access', 'write');
-    script.setAttribute('data-userpic', 'false'); // Disable user pic to avoid domain issues
+    script.setAttribute('data-userpic', 'true'); // Enable user profile picture
     script.async = true;
 
     console.log('Loading Telegram widget with bot:', 'meetup_auth_bot');
