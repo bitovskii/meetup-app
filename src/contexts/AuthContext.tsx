@@ -1,56 +1,74 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+
+type AuthProvider = 'telegram';
+
+interface User {
+  id: number;
+  firstName: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+  provider: AuthProvider;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  signOut: () => Promise<void>;
+  isLoading: boolean;
+  signIn: (userData: any, provider: AuthProvider) => void;
+  signOut: () => void;
+  isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // Check for existing session on load
+    const savedUser = localStorage.getItem('meetup_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('meetup_user');
       }
-    );
-
-    return () => subscription.unsubscribe();
+    }
+    setIsLoading(false);
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signIn = (userData: any, provider: AuthProvider) => {
+    if (provider === 'telegram') {
+      const user: User = {
+        id: userData.id,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        username: userData.username,
+        photoUrl: userData.photo_url,
+        provider: 'telegram'
+      };
+      
+      setUser(user);
+      localStorage.setItem('meetup_user', JSON.stringify(user));
+    }
   };
 
-  const value = useMemo(() => ({
+  const signOut = () => {
+    setUser(null);
+    localStorage.removeItem('meetup_user');
+  };
+
+  const value = useMemo<AuthContextType>(() => ({
     user,
-    session,
-    loading,
+    isLoading,
+    signIn,
     signOut,
-  }), [user, session, loading]);
+    isAuthenticated: !!user
+  }), [user, isLoading]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -61,8 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }
+
+export type { User };
