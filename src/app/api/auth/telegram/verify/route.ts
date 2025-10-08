@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+interface TelegramAuthData {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 export async function POST(request: NextRequest) {
@@ -13,7 +23,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    const authData = await request.json();
+    const authData = await request.json() as TelegramAuthData;
     
     // Verify Telegram authentication data
     const isValid = verifyTelegramAuthData(authData, BOT_TOKEN);
@@ -28,23 +38,13 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ isValid });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Telegram auth verification error:', error);
     return NextResponse.json({ 
       isValid: false, 
       error: 'Verification failed' 
     }, { status: 400 });
   }
-}
-
-interface TelegramAuthData {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
 }
 
 function verifyTelegramAuthData(authData: TelegramAuthData, botToken: string): boolean {

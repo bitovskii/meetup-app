@@ -42,8 +42,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     const savedUser = localStorage.getItem('meetup_user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
+        const parsedUser = JSON.parse(savedUser) as User;
+        setUser(parsedUser);
+      } catch (error: unknown) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('meetup_user');
       }
