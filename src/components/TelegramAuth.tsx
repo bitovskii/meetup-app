@@ -47,10 +47,8 @@ export default function TelegramAuth({
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.setAttribute('data-telegram-login', 'meetup_auth_bot');
     script.setAttribute('data-size', size);
-    script.setAttribute('data-radius', '8');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.setAttribute('data-request-access', 'write');
-    script.setAttribute('data-userpic', 'true'); // Enable user profile picture
     script.async = true;
 
     console.log('Loading Telegram widget with bot:', 'meetup_auth_bot');

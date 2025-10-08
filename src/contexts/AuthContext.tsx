@@ -21,6 +21,7 @@ interface User {
   username?: string;
   photoUrl?: string;
   provider: AuthProvider;
+  loginTime?: number; // Add login timestamp
 }
 
 interface AuthContextType {
@@ -43,7 +44,18 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser) as User;
-        setUser(parsedUser);
+        
+        // Check if session is still valid (7 days)
+        const sessionDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+        const isSessionValid = parsedUser.loginTime && 
+          (Date.now() - parsedUser.loginTime) < sessionDuration;
+        
+        if (isSessionValid) {
+          setUser(parsedUser);
+        } else {
+          // Session expired, clear it
+          localStorage.removeItem('meetup_user');
+        }
       } catch (error: unknown) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('meetup_user');
@@ -54,17 +66,26 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   const signIn = (userData: TelegramUser, provider: AuthProvider) => {
     if (provider === 'telegram') {
+      console.log('AuthContext: Processing Telegram user data:', userData);
+      console.log('AuthContext: Photo URL received:', userData.photo_url);
+      
       const user: User = {
         id: userData.id,
         firstName: userData.first_name,
         lastName: userData.last_name,
         username: userData.username,
         photoUrl: userData.photo_url,
-        provider: 'telegram'
+        provider: 'telegram',
+        loginTime: Date.now() // Add current timestamp
       };
+      
+      console.log('AuthContext: Created user object:', user);
+      console.log('AuthContext: User photoUrl:', user.photoUrl);
       
       setUser(user);
       localStorage.setItem('meetup_user', JSON.stringify(user));
+      
+      console.log('AuthContext: User saved to localStorage');
     }
   };
 

@@ -11,6 +11,11 @@ export default function Navigation({ activeSection, onSectionChange }: Readonly<
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, signOut } = useAuth();
 
+  // Debug logging for user data
+  console.log('Navigation: user object:', user);
+  console.log('Navigation: user photoUrl:', user?.photoUrl);
+  console.log('Navigation: isAuthenticated:', isAuthenticated);
+
   const handleSectionChange = (section: NavigationSection) => {
     onSectionChange(section);
     setIsMenuOpen(false);
@@ -81,13 +86,21 @@ export default function Navigation({ activeSection, onSectionChange }: Readonly<
                   aria-haspopup="true"
                 >
                   {user?.photoUrl ? (
-                    <Image 
-                      src={user.photoUrl} 
-                      alt="Profile" 
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full"
-                    />
+                    <div className="relative">
+                      <Image 
+                        src={user.photoUrl} 
+                        alt="Profile" 
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full"
+                        onError={(e) => {
+                          console.error('Navigation: Failed to load profile image:', user.photoUrl, e);
+                        }}
+                        onLoad={() => {
+                          console.log('Navigation: Profile image loaded successfully:', user.photoUrl);
+                        }}
+                      />
+                    </div>
                   ) : (
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
