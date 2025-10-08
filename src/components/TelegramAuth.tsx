@@ -34,13 +34,23 @@ export default function TelegramAuth({
     console.log('TelegramAuth: Initializing widget for bot:', 'meetup_auth_bot');
     console.log('TelegramAuth: Current domain:', window.location.hostname);
     
+    // Create global callback function
+    (window as unknown as { onTelegramAuth: (user: TelegramUser) => Promise<void> }).onTelegramAuth = async (user: TelegramUser) => {
+      try {
+        console.log('Telegram auth received:', user);
+        onAuth(user);
+      } catch (error) {
+        console.error('Telegram auth error:', error);
+        onError('Authentication failed');
+      }
+    };
+
     // Load Telegram widget script with debugging
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.setAttribute('data-telegram-login', 'meetup_auth_bot');
     script.setAttribute('data-size', 'large');
-    script.setAttribute('data-auth-url', `${window.location.origin}/api/auth/telegram/verify`);
-    script.setAttribute('data-request-access', 'write');
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.async = true;
 
     console.log('Loading Telegram widget with bot:', 'meetup_auth_bot');
