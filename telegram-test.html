@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Bot Test Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #0088cc;
+            background: #f0f8ff;
+        }
+        button {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #006699;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .telegram-message {
+            background: #e3f2fd;
+            border: 1px solid #1976d2;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Telegram Bot Authentication Test</h1>
+        <p>This tool simulates the complete Telegram bot authentication flow locally.</p>
+        
+        <div class="step">
+            <h3>Step 1: Create Auth Session</h3>
+            <button onclick="createSession()">Create New Auth Session</button>
+            <div id="sessionResult"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Simulate Telegram Deep Link</h3>
+            <p>This would normally open: <span id="telegramLink">Create session first</span></p>
+            <button onclick="simulateStart()" disabled id="startBtn">Simulate /start Command</button>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Telegram Bot Message Simulation</h3>
+            <div id="botMessage" style="display: none;">
+                <div class="telegram-message">
+                    <p><strong>Telegram Bot says:</strong></p>
+                    <p>Вы входите на сайт Meetup под учетной записью "Test User".</p>
+                    <p>Чтобы продолжить авторизацию на сайте, нажмите на кнопку "Авторизоваться".</p>
+                    <p>Если вы не совершали никаких действий на сайте, или попали сюда в результате действий третьих лиц, нажмите на кнопку "Отмена".</p>
+                    <br>
+                    <button onclick="authorize()" id="authorizeBtn">✅ Авторизоваться</button>
+                    <button onclick="cancel()" id="cancelBtn">❌ Отмена</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 4: Check Authorization Status</h3>
+            <button onclick="checkStatus()" disabled id="checkBtn">Check Status</button>
+            <div id="statusResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>Test User Data</h3>
+            <input type="text" id="firstName" placeholder="First Name" value="Test">
+            <input type="text" id="lastName" placeholder="Last Name" value="User">
+            <input type="text" id="username" placeholder="Username" value="testuser">
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        let currentEncodedToken = null;
+
+        async function createSession() {
+            try {
+                const response = await fetch('/api/auth/session', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.token) {
+                    currentToken = data.token;
+                    currentEncodedToken = btoa(data.token);
+                    
+                    document.getElementById('sessionResult').innerHTML = `
+                        <div class="success">✅ Session created!</div>
+                        <p>Token: <code>${data.token.substring(0, 20)}...</code></p>
+                        <p>Status: <strong>${data.status}</strong></p>
+                    `;
+                    
+                    document.getElementById('telegramLink').innerHTML = 
+                        `<code>https://t.me/meetup_auth_bot?start=${currentEncodedToken}</code>`;
+                    
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('checkBtn').disabled = false;
+                } else {
+                    throw new Error('No token received');
+                }
+            } catch (error) {
+                document.getElementById('sessionResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function simulateStart() {
+            document.getElementById('botMessage').style.display = 'block';
+            document.getElementById('statusResult').innerHTML = 
+                '<p>🔄 Waiting for user action in Telegram...</p>';
+        }
+
+        async function authorize() {
+            const userData = {
+                id: 123456789,
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                username: document.getElementById('username').value
+            };
+
+            try {
+                const response = await fetch('/api/test/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'authorize',
+                        token: currentToken,
+                        userData: userData
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('botMessage').innerHTML = `
+                        <div class="telegram-message">
+                            <div class="success">✅ ${result.message}</div>
+                            <p><strong>Telegram Bot says:</strong></p>
+                            <p>Вы успешно авторизовались на сайте Meetup, теперь можно вернуться обратно на сайт</p>
+                        </div>
+                    `;
+                    
+                    // Auto-check status after authorization
+                    setTimeout(checkStatus, 1000);
+                } else {
+                    throw new Error(result.message || 'Authorization failed');
+                }
+            } catch (error) {
+                document.getElementById('statusResult').innerHTML = 
+                    `<div class="error">❌ Authorization error: ${error.message}</div>`;
+            }
+        }
+
+        async function cancel() {
+            try {
+                const response = await fetch('/api/test/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cancel',
+                        token: currentToken
+                    })
+                });
+
+                const result = await response.json();
+                
+                document.getElementById('botMessage').innerHTML = `
+                    <div class="telegram-message">
+                        <p><strong>Telegram Bot says:</strong></p>
+                        <p>Авторизация отменена</p>
+                    </div>
+                `;
+                
+                setTimeout(checkStatus, 1000);
+            } catch (error) {
+                document.getElementById('statusResult').innerHTML = 
+                    `<div class="error">❌ Cancel error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkStatus() {
+            if (!currentToken) {
+                document.getElementById('statusResult').innerHTML = 
+                    '<div class="error">❌ No session token available</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/session?token=${currentToken}`);
+                const data = await response.json();
+                
+                let statusHtml = `<p><strong>Status:</strong> ${data.status}</p>`;
+                
+                if (data.status === 'authorized' && data.userData) {
+                    statusHtml += `
+                        <div class="success">🎉 Authorization successful!</div>
+                        <p><strong>User Data:</strong></p>
+                        <ul>
+                            <li>ID: ${data.userData.id}</li>
+                            <li>Name: ${data.userData.first_name} ${data.userData.last_name || ''}</li>
+                            <li>Username: @${data.userData.username || 'N/A'}</li>
+                        </ul>
+                        <p><strong>Now you can go to:</strong> <a href="/auth" target="_blank">http://localhost:3000/auth</a></p>
+                        <p>The frontend should detect this authorization and log you in!</p>
+                    `;
+                } else if (data.status === 'cancelled') {
+                    statusHtml += '<div class="error">❌ Authorization was cancelled</div>';
+                } else if (data.status === 'pending') {
+                    statusHtml += '<div>⏳ Still waiting for authorization...</div>';
+                }
+                
+                document.getElementById('statusResult').innerHTML = statusHtml;
+            } catch (error) {
+                document.getElementById('statusResult').innerHTML = 
+                    `<div class="error">❌ Status check error: ${error.message}</div>`;
+            }
+        }
+
+        // Auto-refresh status every 2 seconds if pending
+        setInterval(() => {
+            if (currentToken) {
+                checkStatus();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -36,20 +36,28 @@ export async function POST(request: NextRequest) {
     console.log('Telegram webhook received:', JSON.stringify(update, null, 2));
 
     // Handle /start command
-    if (update.message?.text?.startsWith('/start ')) {
-      const encodedToken = update.message.text.split('/start ')[1];
+    if (update.message?.text?.startsWith('/start')) {
       const user = update.message.from;
       
-      try {
-        const token = decodeTokenFromTelegram(encodedToken);
+      // Check if this is /start with a token
+      if (update.message.text.startsWith('/start ')) {
+        const encodedToken = update.message.text.split('/start ')[1];
         
-        // Send authorization message with inline keyboard
-        await sendAuthorizationMessage(user.id, user.first_name, token);
-        
-        return NextResponse.json({ ok: true });
-      } catch (error) {
-        console.error('Error processing start command:', error);
-        await sendErrorMessage(user.id);
+        try {
+          const token = decodeTokenFromTelegram(encodedToken);
+          
+          // Send authorization message with inline keyboard
+          await sendAuthorizationMessage(user.id, user.first_name, token);
+          
+          return NextResponse.json({ ok: true });
+        } catch (error) {
+          console.error('Error processing start command:', error);
+          await sendErrorMessage(user.id);
+          return NextResponse.json({ ok: true });
+        }
+      } else {
+        // Plain /start command - send welcome message
+        await sendWelcomeMessage(user.id, user.first_name);
         return NextResponse.json({ ok: true });
       }
     }
@@ -99,6 +107,22 @@ export async function POST(request: NextRequest) {
     console.error('Telegram webhook error:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
+}
+
+async function sendWelcomeMessage(chatId: number, firstName: string) {
+  const message = `Привет, ${firstName}! 👋
+
+Я бот для авторизации на сайте Meetup. 
+
+Чтобы войти на сайт:
+1. Откройте сайт Meetup в браузере
+2. Нажмите кнопку "Войти через Telegram"
+3. Вы будете перенаправлены ко мне с кодом авторизации
+
+Если у вас есть код авторизации, отправьте команду:
+/start [ваш_код]`;
+
+  await sendTelegramMessage(chatId, message);
 }
 
 async function sendAuthorizationMessage(chatId: number, firstName: string, token: string) {
