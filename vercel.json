@@ -9,10 +9,15 @@
       "maxDuration": 10
     }
   },
-  "rewrites": [
+  "headers": [
     {
       "source": "/api/telegram/webhook",
-      "destination": "/api/telegram/webhook"
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
     }
   ]
 }
