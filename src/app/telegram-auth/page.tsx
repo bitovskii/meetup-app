@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 function TelegramAuthContent() {
   const [authStatus, setAuthStatus] = useState<'checking' | 'success' | 'failed'>('checking');
@@ -12,6 +13,8 @@ function TelegramAuthContent() {
     username?: string;
   } | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { signIn } = useAuth();
   const token = searchParams.get('token');
 
   useEffect(() => {
@@ -29,6 +32,25 @@ function TelegramAuthContent() {
         if (data.status === 'authorized') {
           setAuthStatus('success');
           setUserData(data.userData);
+          
+          // Sign in the user with the Telegram data
+          if (data.userData) {
+            const telegramUser = {
+              id: data.userData.id,
+              first_name: data.userData.first_name,
+              last_name: data.userData.last_name,
+              username: data.userData.username,
+              auth_date: Math.floor(Date.now() / 1000),
+              hash: 'telegram_auth' // Placeholder hash
+            };
+            
+            signIn(telegramUser, 'telegram');
+            
+            // Redirect to home page after a short delay
+            setTimeout(() => {
+              router.push('/');
+            }, 2000);
+          }
         } else if (data.status === 'cancelled') {
           setAuthStatus('failed');
         }
@@ -92,7 +114,7 @@ function TelegramAuthContent() {
           <div className="text-green-600 text-6xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-green-600 mb-4">Authorization Successful!</h1>
           <p className="text-gray-600 mb-4">
-            Welcome, {userData?.first_name}!
+            Welcome, {userData?.first_name}! You will be redirected to the main page in 2 seconds.
           </p>
           <button 
             onClick={() => window.location.href = '/'}
