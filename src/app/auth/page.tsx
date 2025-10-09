@@ -1,84 +1,43 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import TelegramBotAuth from '@/components/TelegramBotAuth';
-import { useAuth } from '@/contexts/AuthContext';
-import type { TelegramUser } from '@/components/TelegramAuth';
 
-function AuthContent() {
+export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { signIn } = useAuth();
 
-  const handleTelegramAuth = useCallback(async (user: TelegramUser) => {
+  const handleTelegramLogin = async () => {
     setIsLoading(true);
     setError('');
     
     try {
-      // Sign in user using auth context
-      signIn(user, 'telegram');
+      // Create auth session
+      const response = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create auth session');
+      }
+
+      const { token } = await response.json();
       
-      // Redirect to main app after successful authentication
-      router.push('/');
-    } catch (err) {
-      console.error('Authentication error:', err);
-      setError('Authentication failed. Please try again.');
-    } finally {
+      // Redirect to telegram auth page with the token
+      router.push(`/telegram-auth?token=${token}`);
+    } catch (error) {
+      console.error('Error creating auth session:', error);
+      setError('Failed to start authentication. Please try again.');
       setIsLoading(false);
     }
-  }, [signIn, router]);
+  };
 
-  // Handle redirect from Telegram auth
-  useEffect(() => {
-    const telegramAuth = searchParams.get('telegram_auth');
-    const userData = searchParams.get('user_data');
-    const authError = searchParams.get('error');
 
-    if (telegramAuth === 'success' && userData) {
-      try {
-        const user: TelegramUser = JSON.parse(userData);
-        handleTelegramAuth(user);
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        setError('Authentication failed. Please try again.');
-      }
-    } else if (authError) {
-      const errorMessages = {
-        config: 'Server configuration error. Please try again later.',
-        invalid: 'Invalid authentication data. Please try again.',
-        verification: 'Verification failed. Please try again.'
-      };
-      setError(errorMessages[authError as keyof typeof errorMessages] || 'Authentication failed.');
-    }
-  }, [searchParams, handleTelegramAuth]);
-
-  // Handle redirect from Telegram auth
-  useEffect(() => {
-    const telegramAuth = searchParams.get('telegram_auth');
-    const userData = searchParams.get('user_data');
-    const authError = searchParams.get('error');
-
-    if (telegramAuth === 'success' && userData) {
-      try {
-        const user: TelegramUser = JSON.parse(userData);
-        handleTelegramAuth(user);
-      } catch (err) {
-        console.error('Error parsing user data:', err);
-        setError('Authentication failed. Please try again.');
-      }
-    } else if (authError) {
-      const errorMessages = {
-        config: 'Server configuration error. Please try again later.',
-        invalid: 'Invalid authentication data. Please try again.',
-        verification: 'Verification failed. Please try again.'
-      };
-      setError(errorMessages[authError as keyof typeof errorMessages] || 'Authentication failed.');
-    }
-  }, [searchParams, handleTelegramAuth]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -101,7 +60,7 @@ function AuthContent() {
             Join our community
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Sign in with Telegram to RSVP for events and connect with other members
+            Sign in to RSVP for events and connect with other members
           </p>
         </div>
 
@@ -129,27 +88,59 @@ function AuthContent() {
           ) : (
             <div className="space-y-6">
               <div className="text-center">
-                <div className="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 mb-4">
-                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16c-.569 1.825-1.595 3.593-3.061 5.296-1.756 2.04-4.581 3.775-7.387 4.357-.708.147-1.442.244-2.184.244-.75 0-1.48-.098-2.175-.244-2.808-.582-5.631-2.317-7.387-4.357C3.027 11.753 2.001 9.985 1.432 8.16c1.725-1.033 3.794-1.641 6.017-1.641 2.223 0 4.292.608 6.017 1.641z"/>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Choose your preferred sign-in method:
+                </p>
+              </div>
+
+              {/* Telegram Authentication */}
+              <div className="space-y-4">
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    🔐 Secure authentication with Telegram
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleTelegramLogin}
+                  className="w-full flex justify-center items-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  disabled={isLoading}
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221c-.238.85-.852 3.14-1.204 4.163-.149.434-.442.514-.724.314-.408-.287-1.537-.978-2.142-1.384-.283-.19-.605-.428-.204-.768.401-.34 2.206-2.021 2.49-2.267.071-.062.142-.186-.03-.266-.172-.08-.408.026-.582.15-.174.124-3.29 2.08-3.666 2.321-.376.241-.752.18-1.084.05-.332-.13-1.084-.287-1.693-.485-.61-.199-.61-.485 0-.684 0 0 6.823-2.805 7.23-2.962.407-.157.723-.087.723.684z"/>
                   </svg>
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    🔐 Secure & Bot-Protected Authentication
+                  Continue with Telegram
+                </button>
+
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Click the button above and follow the instructions on the next page
+                  </p>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                    More options coming soon
                   </span>
                 </div>
               </div>
-              
-              <TelegramBotAuth 
-                botUsername="meetup_auth_bot"
-                onAuth={handleTelegramAuth}
-                onError={(error) => setError(error)}
-                className="w-full justify-center"
-              />
 
-              <div className="text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  By signing in with Telegram, you authorize our app to access your basic profile information.
-                </p>
+              {/* Future authentication methods placeholder */}
+              <div className="space-y-3 opacity-50">
+                <button 
+                  disabled 
+                  className="w-full flex justify-center items-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  Continue with GitHub (Coming Soon)
+                </button>
               </div>
             </div>
           )}
@@ -178,13 +169,5 @@ function AuthContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function SignIn() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AuthContent />
-    </Suspense>
   );
 }

@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         };
         
         // Call the simple auth API to mark as authorized
-        await fetch(`${process.env.NEXT_PUBLIC_APP_DOMAIN || 'https://meetup-app-bitovskiis-projects.vercel.app'}/api/auth/simple`, {
+        await fetch(`${process.env.NEXT_PUBLIC_APP_DOMAIN || 'https://meetup-app-theta-steel.vercel.app'}/api/auth/simple`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(authData),
