@@ -87,9 +87,11 @@ export async function POST(request: NextRequest) {
     // Handle callback queries (button presses)
     if (update.callback_query) {
       const { id, from, data } = update.callback_query;
+      console.log('Callback query received:', { id, from, data });
       
       try {
         const [action, token] = data.split(':');
+        console.log('Parsed action:', action, 'token:', token);
         
         if (action === 'authorize') {
           console.log('Processing authorize callback for token:', token);
@@ -109,10 +111,13 @@ export async function POST(request: NextRequest) {
             expiresAt: new Date(Date.now() + 10 * 60 * 1000),
           };
           
+          console.log('Creating auth session:', authSession);
+          
           // Force create the session (solves serverless memory issue)
           const success = createOrUpdateAuthSession(token, authSession);
           console.log('Session creation/update result:', success);
           
+          console.log('Sending success callback and message...');
           await answerCallbackQuery(id, 'Авторизация успешна!');
           await sendSuccessMessage(from.id);
         } else if (action === 'cancel') {
@@ -124,6 +129,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: true });
       } catch (error) {
         console.error('Error processing callback query:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          callbackData: update.callback_query?.data
+        });
         await answerCallbackQuery(id, 'Произошла ошибка');
         return NextResponse.json({ ok: true });
       }
@@ -216,12 +226,27 @@ async function sendTelegramMessage(chatId: number, text: string, reply_markup?: 
 async function answerCallbackQuery(callbackQueryId: string, text: string) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`;
   
-  await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      callback_query_id: callbackQueryId,
-      text,
-    }),
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text,
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('Telegram answerCallbackQuery error:', result);
+      throw new Error(`Telegram API error: ${result.description}`);
+    }
+    
+    console.log('Callback query answered successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error answering callback query:', error);
+    throw error;
+  }
 }
