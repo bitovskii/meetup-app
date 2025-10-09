@@ -54,6 +54,12 @@ export function updateAuthSession(token: string, updates: Partial<AuthSession>):
   return true;
 }
 
+export function createOrUpdateAuthSession(token: string, sessionData: AuthSession): boolean {
+  // Force create/update the session (for serverless environments)
+  authSessions.set(token, sessionData);
+  return true;
+}
+
 export function deleteAuthSession(token: string): boolean {
   return authSessions.delete(token);
 }

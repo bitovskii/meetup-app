@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateAuthSession, decodeTokenFromTelegram } from '@/utils/authSessions';
+import { updateAuthSession, decodeTokenFromTelegram, createOrUpdateAuthSession } from '@/utils/authSessions';
 
 interface TelegramUpdate {
   message?: {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
           };
           
           // Store the session temporarily (will be used when user clicks authorize)
-          updateAuthSession(token, newSession);
+          createOrUpdateAuthSession(token, newSession);
           
           // Send authorization message with inline keyboard
           console.log('Sending authorization message to chat ID:', user.id);
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
           };
           
           // Force create the session (solves serverless memory issue)
-          const success = updateAuthSession(token, authSession);
+          const success = createOrUpdateAuthSession(token, authSession);
           console.log('Session creation/update result:', success);
           
           await answerCallbackQuery(id, 'Авторизация успешна!');
