@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,6 +16,29 @@ function TelegramAuthContent() {
   const router = useRouter();
   const { signIn } = useAuth();
   const token = searchParams.get('token');
+
+  const handleSignIn = useCallback((userData: {
+    id: number;
+    first_name: string;
+    last_name?: string;
+    username?: string;
+  }) => {
+    const telegramUser = {
+      id: userData.id,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      username: userData.username,
+      auth_date: Math.floor(Date.now() / 1000),
+      hash: 'telegram_auth' // Placeholder hash
+    };
+    
+    signIn(telegramUser, 'telegram');
+    
+    // Redirect to home page after a short delay
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+  }, [signIn, router]);
 
   useEffect(() => {
     if (!token) {
@@ -35,21 +58,7 @@ function TelegramAuthContent() {
           
           // Sign in the user with the Telegram data
           if (data.userData) {
-            const telegramUser = {
-              id: data.userData.id,
-              first_name: data.userData.first_name,
-              last_name: data.userData.last_name,
-              username: data.userData.username,
-              auth_date: Math.floor(Date.now() / 1000),
-              hash: 'telegram_auth' // Placeholder hash
-            };
-            
-            signIn(telegramUser, 'telegram');
-            
-            // Redirect to home page after a short delay
-            setTimeout(() => {
-              router.push('/');
-            }, 2000);
+            handleSignIn(data.userData);
           }
         } else if (data.status === 'cancelled') {
           setAuthStatus('failed');
@@ -65,16 +74,14 @@ function TelegramAuthContent() {
     // Stop checking after 5 minutes
     const timeout = setTimeout(() => {
       clearInterval(interval);
-      if (authStatus === 'checking') {
-        setAuthStatus('failed');
-      }
+      setAuthStatus(prevStatus => prevStatus === 'checking' ? 'failed' : prevStatus);
     }, 5 * 60 * 1000);
 
     return () => {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [token]);
+  }, [token, handleSignIn]);
 
   if (!token) {
     return (

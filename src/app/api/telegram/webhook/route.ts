@@ -157,14 +157,14 @@ export async function POST(request: NextRequest) {
           try {
             console.log('Sending success callback...');
             await answerCallbackQuery(id, 'Готово!');
-          } catch (callbackError) {
+          } catch {
             console.log('Callback query failed, but continuing...');
           }
           
           try {
             console.log('Sending success message...');
             await sendSuccessMessage(from.id);
-          } catch (messageError) {
+          } catch {
             console.log('Success message failed, but session is created');
           }
         } else if (action === 'cancel') {
