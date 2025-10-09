@@ -141,7 +141,7 @@ function AuthContent() {
               
               <TelegramAuthRedirect 
                 botId="7803153298"
-                redirectUrl={`${process.env.NEXT_PUBLIC_APP_DOMAIN || (typeof window !== 'undefined' ? window.location.origin : '')}/api/auth/telegram/verify`}
+                redirectUrl=""
                 className="w-full justify-center"
               />
 

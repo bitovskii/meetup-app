@@ -13,12 +13,14 @@ export default function TelegramAuthRedirect({
 }: Readonly<TelegramAuthRedirectProps>) {
   
   const handleTelegramLogin = () => {
-    // Direct redirect - no popups, no iframes
-    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(redirectUrl)}&request_access=write`;
+    // Use current domain for both origin and return URL to ensure consistency
+    const currentOrigin = window.location.origin;
+    const returnUrl = `${currentOrigin}/api/auth/telegram/verify`;
+    const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(currentOrigin)}&return_to=${encodeURIComponent(returnUrl)}&request_access=write`;
     
+    console.log('Current origin:', currentOrigin);
+    console.log('Return URL:', returnUrl);
     console.log('Redirecting to Telegram OAuth:', telegramAuthUrl);
-    console.log('Current origin:', window.location.origin);
-    console.log('Return URL:', redirectUrl);
     
     // Direct navigation - avoids popup issues
     window.location.href = telegramAuthUrl;
