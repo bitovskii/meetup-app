@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import TelegramAuthRedirect from '@/components/TelegramAuthRedirect';
+import TelegramBotAuth from '@/components/TelegramBotAuth';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TelegramUser } from '@/components/TelegramAuth';
 
@@ -139,9 +139,10 @@ function AuthContent() {
                 </div>
               </div>
               
-              <TelegramAuthRedirect 
-                botId="7803153298"
-                redirectUrl=""
+              <TelegramBotAuth 
+                botUsername="meetup_auth_bot"
+                onAuth={handleTelegramAuth}
+                onError={(error) => setError(error)}
                 className="w-full justify-center"
               />
 
