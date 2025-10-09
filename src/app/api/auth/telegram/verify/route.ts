@@ -13,16 +13,14 @@ interface TelegramAuthData {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-// TEMPORARY DEBUG - Log all environment variables
-console.log('=== COMPLETE VERCEL ENVIRONMENT DEBUG ===');
+// ENVIRONMENT DEBUG - Log all environment variables
+console.log('=== VERCEL ENVIRONMENT DEBUG ===');
 console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('TELEGRAM_BOT_TOKEN:', process.env.TELEGRAM_BOT_TOKEN);
+console.log('TELEGRAM_BOT_TOKEN exists:', !!process.env.TELEGRAM_BOT_TOKEN);
 console.log('NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:', process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME);
 console.log('NEXT_PUBLIC_APP_DOMAIN:', process.env.NEXT_PUBLIC_APP_DOMAIN);
-console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-console.log('All process.env keys containing "TELEGRAM":', Object.keys(process.env).filter(key => key.includes('TELEGRAM')));
-console.log('All process.env keys containing "BOT":', Object.keys(process.env).filter(key => key.includes('BOT')));
+console.log('Expected domain: https://meetup-app-theta-steel.vercel.app');
+console.log('Domain match:', process.env.NEXT_PUBLIC_APP_DOMAIN === 'https://meetup-app-theta-steel.vercel.app');
 console.log('=== END ENVIRONMENT DEBUG ===');
 
 // Add CORS headers for debugging
