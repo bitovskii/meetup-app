@@ -48,6 +48,25 @@ export async function POST(request: NextRequest) {
           const token = decodeTokenFromTelegram(encodedToken);
           console.log('Decoded token:', token);
           
+          // Create a new auth session with this token for this user
+          // This fixes the serverless memory issue
+          const newSession = {
+            token,
+            status: 'pending' as const,
+            userId: user.id,
+            userData: {
+              id: user.id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              username: user.username,
+            },
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          };
+          
+          // Store the session temporarily (will be used when user clicks authorize)
+          updateAuthSession(token, newSession);
+          
           // Send authorization message with inline keyboard
           console.log('Sending authorization message to chat ID:', user.id);
           await sendAuthorizationMessage(user.id, user.first_name, token);
