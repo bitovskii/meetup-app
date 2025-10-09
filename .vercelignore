@@ -1,0 +1,2 @@
+# Ignore deployment protection for webhook
+!src/app/api/telegram/webhook/route.ts
