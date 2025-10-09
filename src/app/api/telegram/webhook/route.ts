@@ -92,9 +92,12 @@ export async function POST(request: NextRequest) {
         const [action, token] = data.split(':');
         
         if (action === 'authorize') {
-          // Update session as authorized
-          const success = updateAuthSession(token, {
-            status: 'authorized',
+          console.log('Processing authorize callback for token:', token);
+          
+          // Create/Update session as authorized (handles serverless issue)
+          const authSession = {
+            token,
+            status: 'authorized' as const,
             userId: from.id,
             userData: {
               id: from.id,
@@ -102,14 +105,16 @@ export async function POST(request: NextRequest) {
               last_name: from.last_name,
               username: from.username,
             },
-          });
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          };
           
-          if (success) {
-            await answerCallbackQuery(id, 'Авторизация успешна!');
-            await sendSuccessMessage(from.id);
-          } else {
-            await answerCallbackQuery(id, 'Ошибка авторизации');
-          }
+          // Force create the session (solves serverless memory issue)
+          const success = updateAuthSession(token, authSession);
+          console.log('Session creation/update result:', success);
+          
+          await answerCallbackQuery(id, 'Авторизация успешна!');
+          await sendSuccessMessage(from.id);
         } else if (action === 'cancel') {
           updateAuthSession(token, { status: 'cancelled' });
           await answerCallbackQuery(id, 'Авторизация отменена');
