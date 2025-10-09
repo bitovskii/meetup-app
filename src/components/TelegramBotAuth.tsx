@@ -3,9 +3,19 @@
 import { useState, useEffect } from 'react';
 import { encodeTokenForTelegram } from '@/utils/authSessions';
 
+interface TelegramUserData {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 interface TelegramBotAuthProps {
   botUsername: string;
-  onAuth: (userData: any) => void;
+  onAuth: (userData: TelegramUserData) => void;
   onError: (error: string) => void;
   className?: string;
 }
@@ -23,7 +33,7 @@ export default function TelegramBotAuth({
   // Create auth session when component mounts
   useEffect(() => {
     createAuthSession();
-  }, []);
+  }, [onError]);
 
   // Poll for auth status
   useEffect(() => {
@@ -37,7 +47,13 @@ export default function TelegramBotAuth({
         if (data.status === 'authorized' && data.userData) {
           clearInterval(pollInterval);
           setIsLoading(false);
-          onAuth(data.userData);
+          // Add required fields for compatibility with existing auth system
+          const telegramUser = {
+            ...data.userData,
+            auth_date: Math.floor(Date.now() / 1000),
+            hash: 'bot_auth', // Placeholder since bot auth doesn't use hash verification
+          };
+          onAuth(telegramUser);
         } else if (data.status === 'cancelled') {
           clearInterval(pollInterval);
           setIsLoading(false);
@@ -77,6 +93,11 @@ export default function TelegramBotAuth({
     }
   };
 
+  // Create auth session when component mounts
+  useEffect(() => {
+    createAuthSession();
+  }, [onError]);
+
   const handleTelegramLogin = () => {
     if (!authToken) {
       onError('Auth session not ready');
@@ -112,12 +133,12 @@ export default function TelegramBotAuth({
           </h3>
           
           <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
-            Please check Telegram and click "Authorize" to complete login
+            Please check Telegram and click &quot;Authorize&quot; to complete login
           </p>
           
           <div className="space-y-2 text-xs text-blue-600 dark:text-blue-400">
             <p>• A new tab with Telegram should have opened</p>
-            <p>• Follow the bot's instructions to authorize</p>
+            <p>• Follow the bot&apos;s instructions to authorize</p>
             <p>• Return to this page after authorization</p>
           </div>
           

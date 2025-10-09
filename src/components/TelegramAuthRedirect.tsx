@@ -2,13 +2,11 @@
 
 interface TelegramAuthRedirectProps {
   botId: string;
-  redirectUrl: string;
   className?: string;
 }
 
 export default function TelegramAuthRedirect({ 
   botId, 
-  redirectUrl, 
   className = '' 
 }: Readonly<TelegramAuthRedirectProps>) {
   

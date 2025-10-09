@@ -133,7 +133,7 @@ async function sendErrorMessage(chatId: number) {
   await sendTelegramMessage(chatId, message);
 }
 
-async function sendTelegramMessage(chatId: number, text: string, reply_markup?: any) {
+async function sendTelegramMessage(chatId: number, text: string, reply_markup?: object) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
   
   await fetch(url, {
