@@ -30,9 +30,23 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const { getAuthSession, createOrUpdateAuthSession } = await import('@/utils/authSessions');
+    let session = getAuthSession(token);
     
-    const { getAuthSession } = await import('@/utils/authSessions');
-    const session = getAuthSession(token);
+    // If session doesn't exist, check if this is a valid token format and create a pending session
+    if (!session && token.length === 64) {
+      // Create a temporary pending session for valid tokens
+      const tempSession = {
+        token,
+        status: 'pending' as const,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      };
+      
+      createOrUpdateAuthSession(token, tempSession);
+      session = tempSession;
+    }
     
     if (!session) {
       return NextResponse.json(
@@ -40,7 +54,7 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json({
       status: session.status,
       userData: session.userData,

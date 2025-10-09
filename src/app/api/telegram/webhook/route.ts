@@ -92,22 +92,23 @@ export async function POST(request: NextRequest) {
       console.log('Processing /auth command for token:', token);
       
       try {
-        // Immediately authorize the user
-        const authSession = {
+        // Use simple external storage instead of in-memory sessions
+        const authData = {
           token,
-          status: 'authorized' as const,
-          userId: user.id,
           userData: {
             id: user.id,
             first_name: user.first_name,
             last_name: user.last_name,
             username: user.username,
-          },
-          createdAt: new Date(),
-          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          }
         };
         
-        createOrUpdateAuthSession(token, authSession);
+        // Call the simple auth API to mark as authorized
+        await fetch(`${process.env.NEXT_PUBLIC_APP_DOMAIN || 'https://meetup-app-bitovskiis-projects.vercel.app'}/api/auth/simple`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(authData),
+        });
         
         await sendTelegramMessage(user.id, `✅ Готово! Вы успешно авторизовались как ${user.first_name}. Можете вернуться на сайт.`);
         

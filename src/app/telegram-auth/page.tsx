@@ -23,7 +23,7 @@ function TelegramAuthContent() {
     // Check auth status every 2 seconds
     const checkAuth = async () => {
       try {
-        const response = await fetch(`/api/auth/session?token=${token}`);
+        const response = await fetch(`/api/auth/simple?token=${token}`);
         const data = await response.json();
         
         if (data.status === 'authorized') {
