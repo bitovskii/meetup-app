@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
       // Telegram user profile images
       {
         protocol: 'https',
+        hostname: 't.me',
+        port: '',
+        pathname: '/i/userpic/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn4.telegram-cdn.org',
         port: '',
         pathname: '/**',
