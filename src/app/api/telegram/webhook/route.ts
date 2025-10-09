@@ -117,9 +117,20 @@ export async function POST(request: NextRequest) {
           const success = createOrUpdateAuthSession(token, authSession);
           console.log('Session creation/update result:', success);
           
-          console.log('Sending success callback and message...');
-          await answerCallbackQuery(id, 'Авторизация успешна!');
-          await sendSuccessMessage(from.id);
+          // Send simple responses without complex error handling
+          try {
+            console.log('Sending success callback...');
+            await answerCallbackQuery(id, 'Готово!');
+          } catch (callbackError) {
+            console.log('Callback query failed, but continuing...');
+          }
+          
+          try {
+            console.log('Sending success message...');
+            await sendSuccessMessage(from.id);
+          } catch (messageError) {
+            console.log('Success message failed, but session is created');
+          }
         } else if (action === 'cancel') {
           updateAuthSession(token, { status: 'cancelled' });
           await answerCallbackQuery(id, 'Авторизация отменена');
