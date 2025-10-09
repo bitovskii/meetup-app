@@ -16,11 +16,6 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // Handle GET requests (redirect method)
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== VERCEL ENVIRONMENT DEBUG ===');
-    console.log('BOT_TOKEN exists:', !!BOT_TOKEN);
-    console.log('BOT_TOKEN starts with:', BOT_TOKEN?.substring(0, 10) + '...');
-    console.log('Expected to start with: 7803153298...');
-    
     if (!BOT_TOKEN) {
       console.error('TELEGRAM_BOT_TOKEN is not set');
       return NextResponse.redirect(new URL('/auth?error=config', request.url));
@@ -68,11 +63,6 @@ export async function GET(request: NextRequest) {
 // Handle POST requests (callback method - keeping for backward compatibility)
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== VERCEL ENVIRONMENT DEBUG (POST) ===');
-    console.log('BOT_TOKEN exists:', !!BOT_TOKEN);
-    console.log('BOT_TOKEN starts with:', BOT_TOKEN?.substring(0, 10) + '...');
-    console.log('Expected to start with: 7803153298...');
-    
     if (!BOT_TOKEN) {
       console.error('TELEGRAM_BOT_TOKEN is not set');
       return NextResponse.json({ 
