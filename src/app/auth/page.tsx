@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import TelegramAuth from '@/components/TelegramAuth';
-import TelegramAuthSimple from '@/components/TelegramAuthSimple';
+import TelegramAuthRedirect from '@/components/TelegramAuthRedirect';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TelegramUser } from '@/components/TelegramAuth';
 
@@ -32,11 +31,6 @@ function AuthContent() {
       setIsLoading(false);
     }
   }, [signIn, router]);
-
-  const handleAuthError = (errorMessage: string) => {
-    setError(errorMessage);
-    setIsLoading(false);
-  };
 
   // Handle redirect from Telegram auth
   useEffect(() => {
@@ -145,25 +139,11 @@ function AuthContent() {
                 </div>
               </div>
               
-              <TelegramAuth 
-                botName="meetup_auth_bot"
-                onAuth={handleTelegramAuth}
-                onError={handleAuthError}
-                size="large"
-                className="w-full"
+              <TelegramAuthRedirect 
+                botId="7803153298"
+                redirectUrl={`${process.env.NEXT_PUBLIC_APP_DOMAIN || (typeof window !== 'undefined' ? window.location.origin : '')}/api/auth/telegram/verify`}
+                className="w-full justify-center"
               />
-
-              {/* Alternative simple redirect method */}
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Widget not working? Try direct authentication:
-                </p>
-                <TelegramAuthSimple
-                  botId="7803153298"
-                  redirectUrl={`${process.env.NEXT_PUBLIC_APP_DOMAIN || window.location.origin}/api/auth/telegram/verify`}
-                  className="w-full justify-center"
-                />
-              </div>
 
               <div className="text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
