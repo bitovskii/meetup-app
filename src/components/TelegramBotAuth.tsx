@@ -111,9 +111,18 @@ export default function TelegramBotAuth({
     const telegramUrl = `https://t.me/${botUsername}?start=${encodedToken}`;
     
     console.log('Opening Telegram bot:', telegramUrl);
+    console.log('Auth token:', authToken);
+    console.log('Encoded token:', encodedToken);
     
-    // Open Telegram in new tab
-    window.open(telegramUrl, '_blank');
+    // Try multiple methods to open Telegram
+    const newWindow = window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+    
+    // Check if popup was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+      // Fallback: direct navigation
+      console.log('Popup blocked, using direct navigation');
+      window.location.href = telegramUrl;
+    }
   };
 
   if (isLoading && showInstructions) {
@@ -136,11 +145,27 @@ export default function TelegramBotAuth({
             Please check Telegram and click &quot;Authorize&quot; to complete login
           </p>
           
-          <div className="space-y-2 text-xs text-blue-600 dark:text-blue-400">
+          <div className="space-y-2 text-xs text-blue-600 dark:text-blue-400 mb-4">
             <p>• A new tab with Telegram should have opened</p>
             <p>• Follow the bot&apos;s instructions to authorize</p>
             <p>• Return to this page after authorization</p>
           </div>
+          
+          {authToken && (
+            <div className="mt-4 p-3 bg-blue-100 dark:bg-blue-800/30 rounded-lg">
+              <p className="text-xs text-blue-700 dark:text-blue-300 mb-2">
+                If Telegram didn&apos;t open automatically, click here:
+              </p>
+              <a
+                href={`https://t.me/${botUsername}?start=${encodeTokenForTelegram(authToken)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+              >
+                🤖 Open @{botUsername}
+              </a>
+            </div>
+          )}
           
           <button
             onClick={() => {
