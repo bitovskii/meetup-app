@@ -84,6 +84,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Handle simple /auth command (new simple flow)
+    if (update.message?.text?.startsWith('/auth ')) {
+      const user = update.message.from;
+      const token = update.message.text.split('/auth ')[1];
+      
+      console.log('Processing /auth command for token:', token);
+      
+      try {
+        // Immediately authorize the user
+        const authSession = {
+          token,
+          status: 'authorized' as const,
+          userId: user.id,
+          userData: {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            username: user.username,
+          },
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        };
+        
+        createOrUpdateAuthSession(token, authSession);
+        
+        await sendTelegramMessage(user.id, `✅ Готово! Вы успешно авторизовались как ${user.first_name}. Можете вернуться на сайт.`);
+        
+        return NextResponse.json({ ok: true });
+      } catch (error) {
+        console.error('Error processing auth command:', error);
+        await sendTelegramMessage(user.id, '❌ Ошибка авторизации. Попробуйте еще раз.');
+        return NextResponse.json({ ok: true });
+      }
+    }
+
     // Handle callback queries (button presses)
     if (update.callback_query) {
       const { id, from, data } = update.callback_query;
