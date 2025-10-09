@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateAuthSession, decodeTokenFromTelegram } from '@/utils/authSessions';
+import { updateAuthSession } from '@/utils/authSessions';
 
 export async function POST(request: NextRequest) {
   try {

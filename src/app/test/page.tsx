@@ -169,11 +169,11 @@ Now go to the auth page to see the login work!`;
               <div className="bg-blue-50 border border-blue-300 rounded-lg p-6">
                 <p className="font-semibold text-blue-900 mb-2">Telegram Bot says:</p>
                 <p className="text-blue-800 mb-4">
-                  Вы входите на сайт Meetup под учетной записью "{userData.first_name} {userData.last_name}".
+                  Вы входите на сайт Meetup под учетной записью &quot;{userData.first_name} {userData.last_name}&quot;.
                   <br />
-                  Чтобы продолжить авторизацию на сайте, нажмите на кнопку "Авторизоваться".
+                  Чтобы продолжить авторизацию на сайте, нажмите на кнопку &quot;Авторизоваться&quot;.
                   <br />
-                  Если вы не совершали никаких действий на сайте, или попали сюда в результате действий третьих лиц, нажмите на кнопку "Отмена".
+                  Если вы не совершали никаких действий на сайте, или попали сюда в результате действий третьих лиц, нажмите на кнопку &quot;Отмена&quot;.
                 </p>
                 <div className="space-x-4">
                   <button 

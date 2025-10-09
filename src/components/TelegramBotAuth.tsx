@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { encodeTokenForTelegram } from '@/utils/authSessions';
 
 interface TelegramUserData {
@@ -29,11 +29,6 @@ export default function TelegramBotAuth({
   const [isLoading, setIsLoading] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(false);
-
-  // Create auth session when component mounts
-  useEffect(() => {
-    createAuthSession();
-  }, [onError]);
 
   // Poll for auth status
   useEffect(() => {
@@ -77,7 +72,7 @@ export default function TelegramBotAuth({
     };
   }, [authToken, onAuth, onError]);
 
-  const createAuthSession = async () => {
+  const createAuthSession = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/session', { method: 'POST' });
       const data = await response.json();
@@ -91,12 +86,12 @@ export default function TelegramBotAuth({
       console.error('Error creating auth session:', error);
       onError('Failed to create auth session');
     }
-  };
+  }, [onError]);
 
   // Create auth session when component mounts
   useEffect(() => {
     createAuthSession();
-  }, [onError]);
+  }, [createAuthSession]);
 
   const handleTelegramLogin = () => {
     if (!authToken) {
