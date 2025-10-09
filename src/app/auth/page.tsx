@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import TelegramAuth from '@/components/TelegramAuth';
+import TelegramAuthSimple from '@/components/TelegramAuthSimple';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TelegramUser } from '@/components/TelegramAuth';
 
@@ -151,6 +152,18 @@ function AuthContent() {
                 size="large"
                 className="w-full"
               />
+
+              {/* Alternative simple redirect method */}
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-center text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Widget not working? Try direct authentication:
+                </p>
+                <TelegramAuthSimple
+                  botId="7803153298"
+                  redirectUrl={`${process.env.NEXT_PUBLIC_APP_DOMAIN || window.location.origin}/api/auth/telegram/verify`}
+                  className="w-full justify-center"
+                />
+              </div>
 
               <div className="text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
