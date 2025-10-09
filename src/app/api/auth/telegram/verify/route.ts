@@ -25,12 +25,28 @@ console.log('All process.env keys containing "TELEGRAM":', Object.keys(process.e
 console.log('All process.env keys containing "BOT":', Object.keys(process.env).filter(key => key.includes('BOT')));
 console.log('=== END ENVIRONMENT DEBUG ===');
 
+// Add CORS headers for debugging
+function addCORSHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+  return response;
+}
+
 // Handle GET requests (redirect method)
 export async function GET(request: NextRequest) {
   try {
+    console.log('Incoming GET request:', {
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries()),
+      query: Object.fromEntries(request.nextUrl.searchParams.entries()),
+    });
+
     if (!BOT_TOKEN) {
       console.error('TELEGRAM_BOT_TOKEN is not set');
-      return NextResponse.redirect(new URL('/auth?error=config', request.url));
+      return addCORSHeaders(
+        NextResponse.redirect(new URL('/auth?error=config', request.url))
+      );
     }
 
     const searchParams = request.nextUrl.searchParams;
@@ -45,10 +61,11 @@ export async function GET(request: NextRequest) {
     };
 
     console.log('Telegram auth data received:', authData);
-    
+
     // Verify Telegram authentication data
     const isValid = verifyTelegramAuthData(authData, BOT_TOKEN);
-    
+    console.log('Auth data validity:', isValid);
+
     if (isValid) {
       console.log('Telegram user authenticated:', {
         id: authData.id,
@@ -61,49 +78,56 @@ export async function GET(request: NextRequest) {
       successUrl.searchParams.set('telegram_auth', 'success');
       successUrl.searchParams.set('user_data', JSON.stringify(authData));
       
-      return NextResponse.redirect(successUrl);
+      return addCORSHeaders(NextResponse.redirect(successUrl));
     } else {
       console.error('Invalid Telegram auth data');
-      return NextResponse.redirect(new URL('/auth?error=invalid', request.url));
+      return addCORSHeaders(
+        NextResponse.redirect(new URL('/auth?error=invalid', request.url))
+      );
     }
   } catch (error: unknown) {
     console.error('Telegram auth verification error:', error);
-    return NextResponse.redirect(new URL('/auth?error=verification', request.url));
+    return addCORSHeaders(
+      NextResponse.redirect(new URL('/auth?error=verification', request.url))
+    );
   }
 }
 
 // Handle POST requests (callback method - keeping for backward compatibility)
 export async function POST(request: NextRequest) {
   try {
+    console.log('Incoming POST request:', {
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries()),
+    });
+
     if (!BOT_TOKEN) {
       console.error('TELEGRAM_BOT_TOKEN is not set');
-      return NextResponse.json({ 
-        isValid: false, 
-        error: 'Server configuration error' 
-      }, { status: 500 });
+      return addCORSHeaders(
+        NextResponse.json({ isValid: false, error: 'Server configuration error' }, { status: 500 })
+      );
     }
 
     const authData = await request.json() as TelegramAuthData;
-    
-    // Verify Telegram authentication data
+    console.log('Telegram auth data received (POST):', authData);
+
     const isValid = verifyTelegramAuthData(authData, BOT_TOKEN);
-    
+    console.log('Auth data validity (POST):', isValid);
+
     if (isValid) {
-      // Optional: Store user data in your database here
-      console.log('Telegram user authenticated:', {
+      console.log('Telegram user authenticated (POST):', {
         id: authData.id,
         name: `${authData.first_name} ${authData.last_name || ''}`.trim(),
         username: authData.username
       });
     }
-    
-    return NextResponse.json({ isValid });
+
+    return addCORSHeaders(NextResponse.json({ isValid }));
   } catch (error: unknown) {
-    console.error('Telegram auth verification error:', error);
-    return NextResponse.json({ 
-      isValid: false, 
-      error: 'Verification failed' 
-    }, { status: 400 });
+    console.error('Telegram auth verification error (POST):', error);
+    return addCORSHeaders(
+      NextResponse.json({ isValid: false, error: 'Verification failed' }, { status: 400 })
+    );
   }
 }
 
