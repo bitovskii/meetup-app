@@ -42,11 +42,14 @@ export async function POST(request: NextRequest) {
       // Check if this is /start with a token
       if (update.message.text.startsWith('/start ')) {
         const encodedToken = update.message.text.split('/start ')[1];
+        console.log('Processing /start with token:', encodedToken);
         
         try {
           const token = decodeTokenFromTelegram(encodedToken);
+          console.log('Decoded token:', token);
           
           // Send authorization message with inline keyboard
+          console.log('Sending authorization message to chat ID:', user.id);
           await sendAuthorizationMessage(user.id, user.first_name, token);
           
           return NextResponse.json({ ok: true });
@@ -160,15 +163,30 @@ async function sendErrorMessage(chatId: number) {
 async function sendTelegramMessage(chatId: number, text: string, reply_markup?: object) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
   
-  await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text,
-      reply_markup,
-    }),
-  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        reply_markup,
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('Telegram API error:', result);
+      throw new Error(`Telegram API error: ${result.description}`);
+    }
+    
+    console.log('Message sent successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error sending Telegram message:', error);
+    throw error;
+  }
 }
 
 async function answerCallbackQuery(callbackQueryId: string, text: string) {
