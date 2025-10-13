@@ -6,7 +6,7 @@ import type { CreateEventData } from '@/types';
 export async function GET() {
   try {
     // First, try to fetch events with group relationship
-    let { data: events, error } = await supabase
+    const { data: events, error } = await supabase
       .from('events')
       .select('*')
       .order('created_at', { ascending: false });

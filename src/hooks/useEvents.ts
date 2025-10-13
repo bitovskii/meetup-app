@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Event, DatabaseEvent } from '@/types';
 
 export function useEvents() {
@@ -22,7 +22,7 @@ export function useEvents() {
     updated_at: dbEvent.updated_at
   });
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -55,11 +55,11 @@ export function useEvents() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  }, [fetchEvents]);
 
   return {
     events,

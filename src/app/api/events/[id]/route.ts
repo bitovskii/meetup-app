@@ -5,13 +5,14 @@ import type { UpdateEventData } from '@/types';
 // GET /api/events/[id] - Fetch single event
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { data: event, error } = await supabase
       .from('events')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error) {
@@ -35,9 +36,10 @@ export async function GET(
 // PUT /api/events/[id] - Update event
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Get the authenticated user from Supabase Auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -61,7 +63,7 @@ export async function PUT(
     const { data: existingEvent, error: fetchError } = await supabase
       .from('events')
       .select('creator_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingEvent) {
@@ -87,7 +89,7 @@ export async function PUT(
     const { data: event, error } = await supabase
       .from('events')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -112,9 +114,10 @@ export async function PUT(
 // DELETE /api/events/[id] - Delete event
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Get the authenticated user from Supabase Auth
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -138,7 +141,7 @@ export async function DELETE(
     const { data: existingEvent, error: fetchError } = await supabase
       .from('events')
       .select('creator_id, title')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !existingEvent) {
@@ -159,7 +162,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('events')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       console.error('Error deleting event:', error);
@@ -171,7 +174,7 @@ export async function DELETE(
 
     return NextResponse.json({ 
       message: 'Event deleted successfully',
-      deletedEvent: { id: params.id, title: existingEvent.title }
+      deletedEvent: { id, title: existingEvent.title }
     });
   } catch (error) {
     console.error('Unexpected error:', error);
