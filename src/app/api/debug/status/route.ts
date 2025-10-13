@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     // Test Supabase connection
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('auth_tokens')
       .select('count')
       .limit(1);

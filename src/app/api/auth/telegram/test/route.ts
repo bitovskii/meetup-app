@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+interface TestResult {
+  name: string;
+  status: string;
+  error?: Error | string;
+  data?: Record<string, unknown>;
+}
+
+export async function GET(): Promise<NextResponse> {
   try {
     // Test database connection and table creation
-    const tests: Array<{
-      name: string;
-      status: string;
-      error?: any;
-      data?: any;
-    }> = [];
+    const tests: TestResult[] = [];
 
     // Test 1: Database connection
     tests.push({

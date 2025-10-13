@@ -38,11 +38,29 @@ export function getTokenExpiration(): Date {
 }
 
 /**
+ * Telegram user data interface
+ */
+interface TelegramUserData {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date?: number;
+  [key: string]: unknown; // Allow additional fields
+}
+
+/**
  * Validate Telegram webhook data (basic validation)
  */
-export function validateTelegramData(data: any): boolean {
+export function validateTelegramData(data: unknown): data is TelegramUserData {
   if (!data || typeof data !== 'object') return false;
   
+  const typedData = data as Record<string, unknown>;
+  
+  // Check required fields
   const requiredFields = ['id', 'first_name'];
-  return requiredFields.every(field => data[field] !== undefined);
+  return requiredFields.every(field => 
+    typedData[field] !== undefined && typedData[field] !== null
+  );
 }

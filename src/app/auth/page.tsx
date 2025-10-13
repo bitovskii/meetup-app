@@ -6,12 +6,21 @@ import Link from 'next/link';
 import { TelegramDeepLinkAuth } from '@/components/auth';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface TelegramUser {
+  id: number;
+  username?: string;
+  first_name: string;
+  last_name?: string;
+  photo_url?: string;
+  auth_date: number;
+}
+
 export default function SignIn() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { signIn } = useAuth();
 
-  const handleTelegramSuccess = async (telegramUser: any) => {
+  const handleTelegramSuccess = async (telegramUser: TelegramUser) => {
     try {
       // Create TelegramUser object for the auth context
       const authUser = {

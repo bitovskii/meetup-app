@@ -15,7 +15,7 @@ export interface AuthToken {
   id?: number;
   token: string;
   status: 'pending' | 'success' | 'expired' | 'failed';
-  user_data?: any;
+  user_data?: Record<string, unknown>;
   telegram_user_id?: number;
   created_at?: string;
   expires_at: string;
@@ -25,7 +25,7 @@ export interface AuthToken {
 export interface UserSession {
   id?: number;
   telegram_user_id: number;
-  user_data: any;
+  user_data: Record<string, unknown>;
   last_login?: string;
   created_at?: string;
   updated_at?: string;
