@@ -1,15 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import type { TelegramUser } from '@/types';
 import Logo from './Logo';
 import UserMenu from './UserMenu';
 import MobileMenu from './MobileMenu';
+import TelegramAuthModal from '../TelegramAuthModal';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, isAuthenticated, signIn } = useAuth();
+
+  const handleAuthSuccess = (userData: TelegramUser) => {
+    signIn(userData, 'telegram');
+    setIsAuthModalOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700" role="navigation" aria-label="Main navigation">
@@ -22,12 +29,12 @@ export default function Navigation() {
             {isAuthenticated && user ? (
               <UserMenu user={user} />
             ) : (
-              <Link 
-                href="/auth"
+              <button 
+                onClick={() => setIsAuthModalOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Sign In
-              </Link>
+              </button>
             )}
           </div>
 
@@ -47,8 +54,19 @@ export default function Navigation() {
           </div>
         </div>
 
-        <MobileMenu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+        <MobileMenu 
+          isMenuOpen={isMenuOpen} 
+          setIsMenuOpen={setIsMenuOpen}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        />
       </div>
+
+      {/* Telegram Auth Modal */}
+      <TelegramAuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </nav>
   );
 }

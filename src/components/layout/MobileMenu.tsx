@@ -1,13 +1,13 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MobileMenuProps {
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
+  onOpenAuthModal: () => void;
 }
 
-export default function MobileMenu({ isMenuOpen, setIsMenuOpen }: Readonly<MobileMenuProps>) {
+export default function MobileMenu({ isMenuOpen, setIsMenuOpen, onOpenAuthModal }: Readonly<MobileMenuProps>) {
   const { user, isAuthenticated, signOut } = useAuth();
 
   const handleSignOut = () => {
@@ -57,13 +57,15 @@ export default function MobileMenu({ isMenuOpen, setIsMenuOpen }: Readonly<Mobil
               </button>
             </div>
           ) : (
-            <Link 
-              href="/auth"
+            <button 
+              onClick={() => {
+                onOpenAuthModal();
+                setIsMenuOpen(false);
+              }}
               className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-base font-medium transition-colors"
-              onClick={() => setIsMenuOpen(false)}
             >
               Sign In
-            </Link>
+            </button>
           )}
         </div>
       </div>

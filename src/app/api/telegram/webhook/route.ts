@@ -40,6 +40,12 @@ export async function POST(request: NextRequest) {
 
     const update: TelegramUpdate = await request.json();
     console.log('Telegram webhook received:', JSON.stringify(update, null, 2));
+    
+    // FIRST PRIORITY: Log any callback queries immediately
+    if (update.callback_query) {
+      console.log('🚨🚨🚨 CALLBACK QUERY DETECTED! 🚨🚨🚨');
+      console.log('This means button clicks ARE reaching our webhook!');
+    }
 
     // Handle /start command
     if (update.message?.text?.startsWith('/start')) {
@@ -270,6 +276,16 @@ export async function POST(request: NextRequest) {
           
           console.log('Auth session updated successfully in database');
           
+          // Delete the original authorization message
+          try {
+            if (update.callback_query.message) {
+              await deleteMessage(from.id, update.callback_query.message.message_id);
+              console.log('Authorization message deleted successfully');
+            }
+          } catch (error) {
+            console.log('Failed to delete authorization message, but continuing:', error);
+          }
+          
           // Send simple responses without complex error handling
           try {
             console.log('Sending success callback...');
@@ -278,9 +294,10 @@ export async function POST(request: NextRequest) {
             console.log('Callback query failed, but continuing...');
           }
           
+          // Send a simple success message instead of the long one
           try {
             console.log('Sending success message...');
-            await sendSuccessMessage(from.id);
+            await sendTelegramMessage(from.id, '✅ Successfully authenticated! You can now return to the website.');
           } catch {
             console.log('Success message failed, but session is created');
           }
@@ -356,11 +373,6 @@ async function sendAuthorizationMessage(chatId: number, firstName: string, token
   };
 
   await sendTelegramMessage(chatId, message, keyboard);
-}
-
-async function sendSuccessMessage(chatId: number) {
-  const message = 'Вы успешно авторизовались на сайте Meetup, теперь можно вернуться обратно на сайт';
-  await sendTelegramMessage(chatId, message);
 }
 
 async function sendCancelMessage(chatId: number) {
