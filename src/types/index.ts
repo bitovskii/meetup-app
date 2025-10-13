@@ -1,5 +1,34 @@
-// Event interface for type safety
+// Database interfaces for Events and Groups
+export interface DatabaseEvent {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  place: string;
+  members: number;
+  image: string;
+  creator_id: string;
+  group_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DatabaseGroup {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  location: string;
+  members: number;
+  image: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Client-side Event interface (for backwards compatibility)
 export interface Event {
+  readonly id?: string;
   readonly image: string;
   readonly title: string;
   readonly date: string;
@@ -7,6 +36,25 @@ export interface Event {
   readonly place: string;
   readonly description: string;
   readonly members: number;
+  readonly creator_id?: string;
+  readonly group_id?: string;
+  readonly created_at?: string;
+  readonly updated_at?: string;
+}
+
+// Form interfaces for creating/editing
+export interface CreateEventData {
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  place: string;
+  image: string;
+  group_id?: string;
+}
+
+export interface UpdateEventData extends Partial<CreateEventData> {
+  id: string;
 }
 
 // Authentication types

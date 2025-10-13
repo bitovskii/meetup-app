@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 // Export the new hooks
 export { useEvents } from './useEvents';
+export { useEventMutations } from './useEventMutations';
 export { useTelegramAuth } from './useTelegramAuth';
 
 /**

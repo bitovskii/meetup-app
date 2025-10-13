@@ -1,5 +1,10 @@
 ﻿import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Event } from '@/types';
+
+interface EventCardProps extends Event {
+  onSignInClick?: () => void;
+}
 
 export default function EventCard({
   image,
@@ -8,8 +13,10 @@ export default function EventCard({
   time,
   place,
   description,
-  members
-}: Readonly<Event>) {
+  members,
+  onSignInClick
+}: Readonly<EventCardProps>) {
+  const { isAuthenticated } = useAuth();
   return (
     <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200 w-80 flex flex-col focus-within:ring-2 focus-within:ring-blue-500">
       <div className="relative w-full aspect-video overflow-hidden">
@@ -55,10 +62,11 @@ export default function EventCard({
           </div>
           
           <button 
+            onClick={isAuthenticated ? undefined : onSignInClick}
             className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:bg-green-700 border border-green-600 hover:border-green-700 focus:border-green-700 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center"
-            aria-label={`Join ${title} event`}
+            aria-label={isAuthenticated ? `Join ${title} event` : `Sign in to join ${title} event`}
           >
-            Join
+            {isAuthenticated ? 'Join' : 'Sign in to join'}
           </button>
         </div>
       </div>
