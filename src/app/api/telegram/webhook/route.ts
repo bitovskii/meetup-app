@@ -196,12 +196,19 @@ export async function POST(request: NextRequest) {
 
           if (updateError) {
             console.error('Token update error:', updateError);
-            await answerCallbackQuery(id, 'Authentication error');
+            console.error('Update details:', {
+              token,
+              userData,
+              telegram_user_id: from.id
+            });
+            await answerCallbackQuery(id, 'Database error');
             return NextResponse.json({ ok: true });
           }
 
+          console.log('Token updated successfully in auth_tokens table');
+
           // Store user session
-          await supabase
+          const { error: sessionError } = await supabase
             .from('user_sessions')
             .upsert({
               telegram_user_id: from.id,
@@ -209,6 +216,15 @@ export async function POST(request: NextRequest) {
             }, {
               onConflict: 'telegram_user_id'
             });
+
+          if (sessionError) {
+            console.error('User session error:', sessionError);
+            console.error('Session details:', {
+              telegram_user_id: from.id,
+              userData
+            });
+            // Continue even if session fails - the auth token is the important part
+          }
           
           console.log('Auth session updated successfully in database');
           

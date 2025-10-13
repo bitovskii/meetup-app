@@ -158,3 +158,45 @@ CREATE POLICY "Allow public update on events"
 CREATE POLICY "Allow public update on groups" 
   ON groups FOR UPDATE 
   USING (true);
+
+-- Create Telegram Authentication Tables
+-- Auth tokens for telegram deep link authentication
+CREATE TABLE auth_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  token VARCHAR(255) UNIQUE NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'expired', 'cancelled')),
+  user_data JSONB,
+  telegram_user_id BIGINT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User sessions for telegram users
+CREATE TABLE user_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  telegram_user_id BIGINT UNIQUE NOT NULL,
+  user_data JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security for auth_tokens
+ALTER TABLE auth_tokens ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow public access to auth_tokens (needed for webhook)
+CREATE POLICY "Allow public access to auth_tokens" ON auth_tokens
+  FOR ALL USING (true);
+
+-- Enable Row Level Security for user_sessions  
+ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Allow public access to user_sessions (needed for webhook)
+CREATE POLICY "Allow public access to user_sessions" ON user_sessions
+  FOR ALL USING (true);
+
+-- Create indexes for better performance
+CREATE INDEX idx_auth_tokens_token ON auth_tokens(token);
+CREATE INDEX idx_auth_tokens_status ON auth_tokens(status);
+CREATE INDEX idx_auth_tokens_expires_at ON auth_tokens(expires_at);
+CREATE INDEX idx_user_sessions_telegram_user_id ON user_sessions(telegram_user_id);
