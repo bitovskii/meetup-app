@@ -53,7 +53,11 @@ export async function POST(request: NextRequest) {
         try {
           // Decode token from base64url
           const token = Buffer.from(encodedToken, 'base64url').toString();
+          console.log('=== TOKEN DEBUGGING ===');
+          console.log('Encoded token from Telegram:', encodedToken);
           console.log('Decoded token:', token);
+          console.log('Token length:', token.length);
+          console.log('=======================');
           
           // Check if token exists in database
           const { data: tokenData, error } = await supabase
@@ -64,16 +68,48 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (error || !tokenData) {
-            console.log('Token not found or not pending:', error);
+            console.log('=== TOKEN LOOKUP FAILED ===');
+            console.log('Token lookup failed:', {
+              token,
+              error: error?.message || 'No error',
+              tokenData: tokenData || 'No token data',
+              searchCriteria: { token, status: 'pending' }
+            });
+            
+            // Let's also check if ANY tokens exist in the database
+            const { data: allTokens, error: allError } = await supabase
+              .from('auth_tokens')
+              .select('token, status, created_at')
+              .order('created_at', { ascending: false })
+              .limit(5);
+            
+            console.log('Recent tokens in database:', allTokens);
+            console.log('All tokens query error:', allError);
+            console.log('==========================');
+            
             await sendErrorMessage(user.id);
             return NextResponse.json({ ok: true });
           }
+
+          console.log('Token found successfully:', {
+            token: tokenData.token,
+            status: tokenData.status,
+            created_at: tokenData.created_at,
+            expires_at: tokenData.expires_at
+          });
 
           // Check if token is expired
           const now = new Date();
           const expiresAt = new Date(tokenData.expires_at);
           
           if (now > expiresAt) {
+            console.log('Token expired:', {
+              token,
+              now: now.toISOString(),
+              expiresAt: expiresAt.toISOString(),
+              expired: true
+            });
+            
             await supabase
               .from('auth_tokens')
               .update({ status: 'expired' })
@@ -82,6 +118,8 @@ export async function POST(request: NextRequest) {
             await sendErrorMessage(user.id);
             return NextResponse.json({ ok: true });
           }
+
+          console.log('Token is valid and not expired');
           
           // Send authorization message with inline keyboard
           console.log('Sending authorization message to chat ID:', user.id);
