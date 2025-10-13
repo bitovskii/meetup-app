@@ -63,8 +63,8 @@ function TelegramAuthContent() {
         } else if (data.status === 'cancelled') {
           setAuthStatus('failed');
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+      } catch {
+        // Ignore auth check errors and continue
       }
     };
 

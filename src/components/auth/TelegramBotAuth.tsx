@@ -54,8 +54,8 @@ export default function TelegramBotAuth({
           setIsLoading(false);
           onError('Authorization cancelled');
         }
-      } catch (error) {
-        console.error('Error polling auth status:', error);
+      } catch {
+        // Ignore polling errors and continue
       }
     }, 2000); // Poll every 2 seconds
 
@@ -82,8 +82,7 @@ export default function TelegramBotAuth({
       } else {
         onError('Failed to create auth session');
       }
-    } catch (error) {
-      console.error('Error creating auth session:', error);
+    } catch {
       onError('Failed to create auth session');
     }
   }, [onError]);
@@ -105,17 +104,12 @@ export default function TelegramBotAuth({
     const encodedToken = encodeTokenForTelegram(authToken);
     const telegramUrl = `https://t.me/${botUsername}?start=${encodedToken}`;
     
-    console.log('Opening Telegram bot:', telegramUrl);
-    console.log('Auth token:', authToken);
-    console.log('Encoded token:', encodedToken);
-    
     // Try multiple methods to open Telegram
     const newWindow = window.open(telegramUrl, '_blank', 'noopener,noreferrer');
     
     // Check if popup was blocked
     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
       // Fallback: direct navigation
-      console.log('Popup blocked, using direct navigation');
       window.location.href = telegramUrl;
     }
   };

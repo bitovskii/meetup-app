@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 
+// Export the new hooks
+export { useEvents } from './useEvents';
+export { useTelegramAuth } from './useTelegramAuth';
+
 /**
  * Custom hook for managing loading states
  */

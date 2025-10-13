@@ -1,36 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-
-type AuthProvider = 'telegram';
-
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-}
-
-interface User {
-  id: number;
-  firstName: string;
-  lastName?: string;
-  username?: string;
-  photoUrl?: string;
-  provider: AuthProvider;
-  loginTime?: number; // Add login timestamp
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  signIn: (userData: TelegramUser, provider: AuthProvider) => void;
-  signOut: () => void;
-  isAuthenticated: boolean;
-}
+import type { TelegramUser, User, AuthContextType } from '@/types';
+import { APP_CONFIG } from '@/lib/constants';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -39,62 +11,47 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session on load
-    const savedUser = localStorage.getItem('meetup_user');
+    const savedUser = localStorage.getItem(APP_CONFIG.localStorageKeys.user);
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser) as User;
         
-        // Check if session is still valid (7 days)
-        const sessionDuration = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
         const isSessionValid = parsedUser.loginTime && 
-          (Date.now() - parsedUser.loginTime) < sessionDuration;
-        
+          (Date.now() - parsedUser.loginTime) < APP_CONFIG.sessionDuration;
+
         if (isSessionValid) {
           setUser(parsedUser);
         } else {
-          // Session expired, clear it
-          localStorage.removeItem('meetup_user');
+          localStorage.removeItem(APP_CONFIG.localStorageKeys.user);
         }
-      } catch (error: unknown) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('meetup_user');
+      } catch {
+        localStorage.removeItem(APP_CONFIG.localStorageKeys.user);
       }
     }
     setIsLoading(false);
   }, []);
 
-  const signIn = (userData: TelegramUser, provider: AuthProvider) => {
-    if (provider === 'telegram') {
-      console.log('AuthContext: Processing Telegram user data:', userData);
-      console.log('AuthContext: Photo URL received:', userData.photo_url);
-      
-      const user: User = {
-        id: userData.id,
-        firstName: userData.first_name,
-        lastName: userData.last_name,
-        username: userData.username,
-        photoUrl: userData.photo_url,
-        provider: 'telegram',
-        loginTime: Date.now() // Add current timestamp
-      };
-      
-      console.log('AuthContext: Created user object:', user);
-      console.log('AuthContext: User photoUrl:', user.photoUrl);
-      
-      setUser(user);
-      localStorage.setItem('meetup_user', JSON.stringify(user));
-      
-      console.log('AuthContext: User saved to localStorage');
-    }
+  const signIn = (userData: TelegramUser, provider: 'telegram') => {
+    const user: User = {
+      id: userData.id,
+      firstName: userData.first_name,
+      lastName: userData.last_name,
+      username: userData.username,
+      photoUrl: userData.photo_url,
+      provider,
+      loginTime: Date.now()
+    };
+
+    setUser(user);
+    localStorage.setItem(APP_CONFIG.localStorageKeys.user, JSON.stringify(user));
   };
 
   const signOut = () => {
     setUser(null);
-    localStorage.removeItem('meetup_user');
+    localStorage.removeItem(APP_CONFIG.localStorageKeys.user);
   };
 
-  const value = useMemo<AuthContextType>(() => ({
+  const contextValue = useMemo(() => ({
     user,
     isLoading,
     signIn,
@@ -103,7 +60,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   }), [user, isLoading]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
@@ -116,5 +73,3 @@ export function useAuth() {
   }
   return context;
 }
-
-export type { User };
