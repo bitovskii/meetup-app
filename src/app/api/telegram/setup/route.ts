@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       case 'setup':
         // Complete bot setup
-        const setupWebhookUrl = webhookUrl || `${process.env.NEXT_PUBLIC_APP_DOMAIN}/api/auth/telegram/webhook`;
+        const setupWebhookUrl = webhookUrl || `${process.env.NEXT_PUBLIC_APP_DOMAIN}/api/telegram/webhook`;
         
         // Get bot info first
         const info = await getBotInfo();

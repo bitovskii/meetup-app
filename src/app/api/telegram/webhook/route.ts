@@ -20,6 +20,12 @@ interface TelegramUpdate {
       username?: string;
     };
     data: string;
+    message?: {
+      message_id: number;
+      chat: {
+        id: number;
+      };
+    };
   };
 }
 
@@ -170,6 +176,16 @@ export async function POST(request: NextRequest) {
         } else if (action === 'cancel') {
           updateAuthSession(token, { status: 'cancelled' });
           await answerCallbackQuery(id, 'Авторизация отменена');
+          
+          // Delete the original authorization message
+          try {
+            if (update.callback_query.message) {
+              await deleteMessage(from.id, update.callback_query.message.message_id);
+            }
+          } catch (error) {
+            console.log('Failed to delete message, but continuing:', error);
+          }
+          
           await sendCancelMessage(from.id);
         }
         
@@ -294,6 +310,34 @@ async function answerCallbackQuery(callbackQueryId: string, text: string) {
     return result;
   } catch (error) {
     console.error('Error answering callback query:', error);
+    throw error;
+  }
+}
+
+async function deleteMessage(chatId: number, messageId: number) {
+  const url = `https://api.telegram.org/bot${BOT_TOKEN}/deleteMessage`;
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error('Telegram deleteMessage error:', result);
+      throw new Error(`Telegram API error: ${result.description}`);
+    }
+    
+    console.log('Message deleted successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('Error deleting message:', error);
     throw error;
   }
 }
