@@ -4,8 +4,17 @@ import { useState, useEffect } from 'react';
 import { useTelegramAuth } from '@/hooks/useTelegramAuth';
 import { Button, LoadingSpinner } from '@/components/ui';
 
+interface TelegramUser {
+  id: number;
+  username?: string;
+  first_name: string;
+  last_name?: string;
+  photo_url?: string;
+  auth_date: number;
+}
+
 interface TelegramDeepLinkAuthProps {
-  onSuccess?: (userData: any) => void;
+  onSuccess?: (userData: TelegramUser) => void;
   onError?: (error: string) => void;
 }
 

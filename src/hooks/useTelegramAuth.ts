@@ -1,6 +1,15 @@
 import { useState, useCallback } from 'react';
 import type { AuthTokenResponse, AuthValidationResponse } from '@/types';
 
+interface TelegramUserData {
+  id: number;
+  username?: string;
+  first_name: string;
+  last_name?: string;
+  photo_url?: string;
+  auth_date: number;
+}
+
 interface TelegramAuthState {
   isGenerating: boolean;
   isValidating: boolean;
@@ -58,7 +67,7 @@ export function useTelegramAuth() {
     }
   }, []);
 
-  const validateToken = useCallback(async (token: string, userData?: any) => {
+  const validateToken = useCallback(async (token: string, userData?: TelegramUserData) => {
     setState(prev => ({ ...prev, isValidating: true, error: null }));
 
     try {

@@ -42,7 +42,7 @@ export default function BotSetupPage() {
 
       const result: SetupResponse = await response.json();
       setSetupResult(result);
-    } catch (error) {
+    } catch {
       setSetupResult({
         success: false,
         error: 'Failed to connect to API'
@@ -53,7 +53,9 @@ export default function BotSetupPage() {
   };
 
   const quickSetup = () => {
-    const defaultWebhook = `${window.location.origin}/api/auth/telegram/webhook`;
+    const defaultWebhook = typeof window !== 'undefined' 
+      ? `${window.location.origin}/api/auth/telegram/webhook`
+      : '/api/auth/telegram/webhook';
     setWebhookUrl(defaultWebhook);
     handleSetup('setup');
   };
@@ -92,14 +94,15 @@ export default function BotSetupPage() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="webhook-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Webhook URL (optional - will use default if empty)
                   </label>
                   <input
+                    id="webhook-url"
                     type="url"
                     value={webhookUrl}
                     onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder={`${window.location.origin}/api/auth/telegram/webhook`}
+                    placeholder={typeof window !== 'undefined' ? `${window.location.origin}/api/auth/telegram/webhook` : 'https://your-domain.com/api/auth/telegram/webhook'}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
@@ -193,7 +196,7 @@ export default function BotSetupPage() {
               </h3>
               <ol className="text-yellow-800 dark:text-yellow-200 space-y-2 text-sm">
                 <li><strong>1.</strong> Make sure your TELEGRAM_BOT_TOKEN is set in environment variables</li>
-                <li><strong>2.</strong> Click "Setup Bot Now" for automatic configuration</li>
+                <li><strong>2.</strong> Click &quot;Setup Bot Now&quot; for automatic configuration</li>
                 <li><strong>3.</strong> If using a custom domain, update the webhook URL first</li>
                 <li><strong>4.</strong> For local development, use ngrok to expose your webhook endpoint</li>
                 <li><strong>5.</strong> Test the bot by sending a message to your bot on Telegram</li>
