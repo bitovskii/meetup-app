@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateAuthSession, decodeTokenFromTelegram, createOrUpdateAuthSession } from '@/utils/authSessions';
+import { supabase } from '@/lib/supabase';
 
 interface TelegramUpdate {
   message?: {
@@ -51,27 +51,37 @@ export async function POST(request: NextRequest) {
         console.log('Processing /start with token:', encodedToken);
         
         try {
-          const token = decodeTokenFromTelegram(encodedToken);
+          // Decode token from base64url
+          const token = Buffer.from(encodedToken, 'base64url').toString();
           console.log('Decoded token:', token);
           
-          // Create a new auth session with this token for this user
-          // This fixes the serverless memory issue
-          const newSession = {
-            token,
-            status: 'pending' as const,
-            userId: user.id,
-            userData: {
-              id: user.id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              username: user.username,
-            },
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-          };
+          // Check if token exists in database
+          const { data: tokenData, error } = await supabase
+            .from('auth_tokens')
+            .select('*')
+            .eq('token', token)
+            .eq('status', 'pending')
+            .single();
+
+          if (error || !tokenData) {
+            console.log('Token not found or not pending:', error);
+            await sendErrorMessage(user.id);
+            return NextResponse.json({ ok: true });
+          }
+
+          // Check if token is expired
+          const now = new Date();
+          const expiresAt = new Date(tokenData.expires_at);
           
-          // Store the session temporarily (will be used when user clicks authorize)
-          createOrUpdateAuthSession(token, newSession);
+          if (now > expiresAt) {
+            await supabase
+              .from('auth_tokens')
+              .update({ status: 'expired' })
+              .eq('token', token);
+            
+            await sendErrorMessage(user.id);
+            return NextResponse.json({ ok: true });
+          }
           
           // Send authorization message with inline keyboard
           console.log('Sending authorization message to chat ID:', user.id);
@@ -138,31 +148,74 @@ export async function POST(request: NextRequest) {
         if (action === 'authorize') {
           console.log('Processing authorize callback for token:', token);
           
-          // Create/Update session as authorized (handles serverless issue)
-          const authSession = {
-            token,
-            status: 'authorized' as const,
-            userId: from.id,
-            userData: {
-              id: from.id,
-              first_name: from.first_name,
-              last_name: from.last_name,
-              username: from.username,
-            },
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          // Find the token in database
+          const { data: tokenData, error } = await supabase
+            .from('auth_tokens')
+            .select('*')
+            .eq('token', token)
+            .eq('status', 'pending')
+            .single();
+
+          if (error || !tokenData) {
+            await answerCallbackQuery(id, 'Token expired or invalid');
+            return NextResponse.json({ ok: true });
+          }
+
+          // Check if token is expired
+          const now = new Date();
+          const expiresAt = new Date(tokenData.expires_at);
+          
+          if (now > expiresAt) {
+            await supabase
+              .from('auth_tokens')
+              .update({ status: 'expired' })
+              .eq('token', token);
+            
+            await answerCallbackQuery(id, 'Token expired');
+            return NextResponse.json({ ok: true });
+          }
+
+          // Create user data object
+          const userData = {
+            id: from.id,
+            username: from.username,
+            first_name: from.first_name,
+            last_name: from.last_name,
+            auth_date: Math.floor(Date.now() / 1000)
           };
+
+          // Update token with user data
+          const { error: updateError } = await supabase
+            .from('auth_tokens')
+            .update({
+              status: 'success',
+              user_data: userData,
+              telegram_user_id: from.id
+            })
+            .eq('token', token);
+
+          if (updateError) {
+            console.error('Token update error:', updateError);
+            await answerCallbackQuery(id, 'Authentication error');
+            return NextResponse.json({ ok: true });
+          }
+
+          // Store user session
+          await supabase
+            .from('user_sessions')
+            .upsert({
+              telegram_user_id: from.id,
+              user_data: userData
+            }, {
+              onConflict: 'telegram_user_id'
+            });
           
-          console.log('Creating auth session:', authSession);
-          
-          // Force create the session (solves serverless memory issue)
-          const success = createOrUpdateAuthSession(token, authSession);
-          console.log('Session creation/update result:', success);
+          console.log('Auth session updated successfully in database');
           
           // Send simple responses without complex error handling
           try {
             console.log('Sending success callback...');
-            await answerCallbackQuery(id, 'Готово!');
+            await answerCallbackQuery(id, '✅ Authentication successful!');
           } catch {
             console.log('Callback query failed, but continuing...');
           }
@@ -174,7 +227,12 @@ export async function POST(request: NextRequest) {
             console.log('Success message failed, but session is created');
           }
         } else if (action === 'cancel') {
-          updateAuthSession(token, { status: 'cancelled' });
+          // Update token status to cancelled in database
+          await supabase
+            .from('auth_tokens')
+            .update({ status: 'cancelled' })
+            .eq('token', token);
+            
           await answerCallbackQuery(id, 'Авторизация отменена');
           
           // Delete the original authorization message
