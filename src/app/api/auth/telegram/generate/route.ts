@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { generateAuthToken, generateTelegramDeepLink, getTokenExpiration } from '@/lib/auth-utils';
 import type { AuthTokenResponse } from '@/types';
 
-export async function POST(request: NextRequest): Promise<NextResponse<AuthTokenResponse>> {
+export async function POST(): Promise<NextResponse<AuthTokenResponse>> {
   try {
     // Generate secure token
     const token = generateAuthToken();
