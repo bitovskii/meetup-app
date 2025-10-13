@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
         console.log('Processing /start with token:', encodedToken);
         
         try {
-          // Decode token from base64url
-          const token = Buffer.from(encodedToken, 'base64url').toString();
+          // The token from Telegram is already the raw token, no need to decode
+          const token = encodedToken.trim();
           console.log('=== TOKEN DEBUGGING ===');
-          console.log('Encoded token from Telegram:', encodedToken);
-          console.log('Decoded token:', token);
+          console.log('Token from Telegram:', encodedToken);
+          console.log('Using token:', token);
           console.log('Token length:', token.length);
           console.log('=======================');
           
