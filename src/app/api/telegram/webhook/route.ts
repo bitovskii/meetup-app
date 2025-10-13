@@ -176,14 +176,18 @@ export async function POST(request: NextRequest) {
 
     // Handle callback queries (button presses)
     if (update.callback_query) {
+      console.log('🔘 CALLBACK QUERY RECEIVED! 🔘');
+      console.log('Callback query details:', JSON.stringify(update.callback_query, null, 2));
+      
       const { id, from, data } = update.callback_query;
-      console.log('Callback query received:', { id, from, data });
+      console.log('Processing callback query - ID:', id, 'From:', from.first_name, 'Data:', data);
       
       try {
         const [action, token] = data.split(':');
         console.log('Parsed action:', action, 'token:', token);
         
         if (action === 'authorize') {
+          console.log('🔥 AUTHORIZE BUTTON CLICKED! 🔥');
           console.log('Processing authorize callback for token:', token);
           
           // Find the token in database
