@@ -48,16 +48,12 @@ export async function POST(request: NextRequest) {
     // Provide default image if not provided
     const defaultImage = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop';
     
-    // For now, use a temporary creator_id until auth is implemented
-    const creator_id = 'temp-user-id';
-    
-    // Insert the event with creator_id
+    // Insert the event without creator_id for now (until auth is implemented)
     const { data: event, error } = await supabase
       .from('events')
       .insert({
         ...eventData,
         image: eventData.image || defaultImage,
-        creator_id,
         members: 0 // Start with 0 members
       })
       .select()
