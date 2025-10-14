@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import NotificationContainer from "@/components/ui/NotificationContainer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +36,10 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <AuthProvider>
-            {children}
+            <NotificationProvider>
+              {children}
+              <NotificationContainer />
+            </NotificationProvider>
           </AuthProvider>
         </ErrorBoundary>
       </body>

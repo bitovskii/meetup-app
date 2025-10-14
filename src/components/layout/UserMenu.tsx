@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import CreateEventModal from '@/components/events/CreateEventModal';
+import { useEvents } from '@/hooks';
 import type { User } from '@/types';
 
 interface UserMenuProps {
@@ -9,15 +11,45 @@ interface UserMenuProps {
 
 export default function UserMenu({ user }: Readonly<UserMenuProps>) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { signOut } = useAuth();
+  const { refetch } = useEvents();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = () => {
     signOut();
     setIsUserMenuOpen(false);
   };
 
+  const handleCreateEventClick = () => {
+    setIsCreateModalOpen(true);
+    setIsUserMenuOpen(false);
+  };
+
+  const handleEventCreated = () => {
+    refetch();
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
+
   return (
-    <div className="relative">
+    <>
+      <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
         className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -62,6 +94,15 @@ export default function UserMenu({ user }: Readonly<UserMenuProps>) {
               </div>
             </div>
             <button
+              onClick={handleCreateEventClick}
+              className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create Event
+            </button>
+            <button
               onClick={handleSignOut}
               className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
@@ -71,5 +112,13 @@ export default function UserMenu({ user }: Readonly<UserMenuProps>) {
         </div>
       )}
     </div>
+
+    {/* Create Event Modal */}
+    <CreateEventModal
+      isOpen={isCreateModalOpen}
+      onClose={() => setIsCreateModalOpen(false)}
+      onSuccess={handleEventCreated}
+    />
+  </>
   );
 }

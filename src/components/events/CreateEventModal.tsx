@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useEventMutations } from '@/hooks';
+import { useNotification } from '@/contexts/NotificationContext';
 import type { CreateEventData } from '@/types';
 
 interface CreateEventModalProps {
@@ -12,6 +13,7 @@ interface CreateEventModalProps {
 
 export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonly<CreateEventModalProps>) {
   const { createEvent, isLoading, error, clearError } = useEventMutations();
+  const { showNotification } = useNotification();
   const [formData, setFormData] = useState<CreateEventData>({
     title: '',
     description: '',
@@ -22,11 +24,32 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
     group_id: undefined
   });
 
+  // Format date from YYYY-MM-DD to DD.MM.YYYY
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}.${month}.${year}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const result = await createEvent(formData);
+    // Create formatted data for submission
+    const submissionData = {
+      ...formData,
+      date: formatDateForDisplay(formData.date), // Convert to DD.MM.YYYY format
+      // Time is already in HH:MM format from input type="time"
+    };
+    
+    const result = await createEvent(submissionData);
     if (result) {
+      // Show success notification
+      showNotification({
+        title: 'Event Created!',
+        message: `"${formData.title}" has been successfully created.`,
+        type: 'success'
+      });
+      
       // Reset form
       setFormData({
         title: '',
