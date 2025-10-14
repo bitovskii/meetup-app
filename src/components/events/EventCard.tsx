@@ -1,5 +1,6 @@
 ﻿import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatDateToDDMMYYYY, formatTimeTo24Hour } from '@/lib/utils';
 import type { Event } from '@/types';
 
 interface EventCardProps extends Event {
@@ -17,6 +18,11 @@ export default function EventCard({
   onSignInClick
 }: Readonly<EventCardProps>) {
   const { isAuthenticated } = useAuth();
+  
+  // Format date and time for display
+  const formattedDate = formatDateToDDMMYYYY(date);
+  const formattedTime = formatTimeTo24Hour(time);
+  
   return (
     <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200 w-80 flex flex-col focus-within:ring-2 focus-within:ring-blue-500">
       <div className="relative w-full aspect-video overflow-hidden">
@@ -34,11 +40,11 @@ export default function EventCard({
           {title}
         </h3>
         
-        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2" aria-label={`Date and time: ${date} at ${time}`}>
+        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2" aria-label={`Date and time: ${formattedDate} at ${formattedTime}`}>
           <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>{date} at {time}</span>
+          <span>{formattedDate} at {formattedTime}</span>
         </div>
         
         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3" aria-label={`Location: ${place}`}>
