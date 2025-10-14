@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEventsContext } from '@/contexts/EventsContext';
 import CreateEventModal from '@/components/events/CreateEventModal';
-import { useEvents } from '@/hooks';
 import type { User } from '@/types';
 
 interface UserMenuProps {
@@ -13,7 +13,7 @@ export default function UserMenu({ user }: Readonly<UserMenuProps>) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { signOut } = useAuth();
-  const { refetch } = useEvents();
+  const { refetch } = useEventsContext();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSignOut = () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useEvents } from '@/hooks';
+import { useEventsContext } from '@/contexts/EventsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { TelegramUser } from '@/types';
 import EventsGrid from './EventsGrid';
@@ -9,7 +9,7 @@ import Loading from '../ui/Loading';
 import TelegramAuthModal from '../TelegramAuthModal';
 
 export default function EventsSection() {
-  const { events, isLoading, error } = useEvents();
+  const { events, isLoading, error } = useEventsContext();
   const { signIn } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 

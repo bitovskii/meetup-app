@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEventsContext } from '@/contexts/EventsContext';
 import { useState } from 'react';
 import CreateEventModal from '../events/CreateEventModal';
-import { useEvents } from '@/hooks';
 
 interface MobileMenuProps {
   isMenuOpen: boolean;
@@ -13,7 +13,7 @@ interface MobileMenuProps {
 export default function MobileMenu({ isMenuOpen, setIsMenuOpen, onOpenAuthModal }: Readonly<MobileMenuProps>) {
   const { user, isAuthenticated, signOut } = useAuth();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { refetch } = useEvents();
+  const { refetch } = useEventsContext();
 
   const handleSignOut = () => {
     signOut();

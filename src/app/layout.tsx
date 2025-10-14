@@ -4,6 +4,7 @@ import "./globals.css";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { EventsProvider } from "@/contexts/EventsContext";
 import NotificationContainer from "@/components/ui/NotificationContainer";
 
 const geistSans = Geist({
@@ -37,8 +38,10 @@ export default function RootLayout({
         <ErrorBoundary>
           <AuthProvider>
             <NotificationProvider>
-              {children}
-              <NotificationContainer />
+              <EventsProvider>
+                {children}
+                <NotificationContainer />
+              </EventsProvider>
             </NotificationProvider>
           </AuthProvider>
         </ErrorBoundary>
