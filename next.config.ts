@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Supabase storage for uploaded images
+      {
+        protocol: 'https',
+        hostname: 'vlacdhcdhhujnmginvgd.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
       // Telegram user profile images
       {
         protocol: 'https',
