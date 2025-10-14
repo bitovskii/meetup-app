@@ -65,6 +65,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `event-images/${fileName}`;
 
+      console.log('Attempting to upload:', { fileName, filePath, fileSize: file.size, fileType: file.type });
+
       // Upload file to Supabase storage
       const { data, error } = await supabase.storage
         .from('images')
@@ -74,15 +76,31 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
         });
 
       if (error) {
-        console.error('Upload error:', error);
-        throw new Error('Failed to upload image');
+        console.error('Supabase upload error:', error);
+        console.error('Error details:', {
+          message: error.message
+        });
+        
+        // Provide more specific error messages
+        if (error.message?.includes('Bucket not found')) {
+          throw new Error('Storage bucket not configured. Please set up Supabase storage first.');
+        } else if (error.message?.includes('Row Level Security')) {
+          throw new Error('Authentication required for upload. Please sign in first.');
+        } else if (error.message?.includes('not found')) {
+          throw new Error('Storage bucket "images" does not exist. Please create it in Supabase.');
+        }
+        
+        throw new Error(`Upload failed: ${error.message}`);
       }
+
+      console.log('Upload successful:', data);
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('images')
         .getPublicUrl(data.path);
 
+      console.log('Public URL generated:', urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
