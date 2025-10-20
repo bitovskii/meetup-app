@@ -330,6 +330,7 @@ export class DatabaseService {
 
   // Event attendance operations
   async addEventAttendee(eventId: string, userId: string, status: 'going' | 'maybe' | 'not_going' = 'going') {
+    // First, add the attendee
     const { data, error } = await this.client
       .from('event_attendees')
       .upsert({
@@ -344,6 +345,10 @@ export class DatabaseService {
       .single();
     
     if (error) throw error;
+
+    // Update the attendee count in the events table
+    await this.updateEventAttendeeCount(eventId);
+    
     return data;
   }
 
@@ -404,7 +409,34 @@ export class DatabaseService {
       .select()
       .single();
     
+    if (!error) {
+      // Update the attendee count in the events table
+      await this.updateEventAttendeeCount(eventId);
+    }
+    
     return { data, error };
+  }
+
+  // Update attendee count for an event
+  async updateEventAttendeeCount(eventId: string) {
+    // Count current attendees
+    const { count } = await this.client
+      .from('event_attendees')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_id', eventId)
+      .eq('status', 'going');
+
+    // Update the events table
+    const { error } = await this.client
+      .from('events')
+      .update({ attendee_count: count || 0 })
+      .eq('id', eventId);
+
+    if (error) {
+      console.error('Error updating attendee count:', error);
+    }
+
+    return count || 0;
   }
 
   async checkEventAttendance(eventId: string, userId: string) {

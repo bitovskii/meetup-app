@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UseEventAttendanceProps {
@@ -26,7 +26,41 @@ export function useEventAttendance({
   const [attendeeCount, setAttendeeCount] = useState(initialAttendeeCount);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { user } = useAuth();
+
+  // Check user's attendance status when component loads
+  useEffect(() => {
+    if (!user?.sessionToken || isInitialized) return;
+
+    const checkAttendance = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/events/${eventId}/attendance`, {
+          headers: {
+            'Authorization': `Bearer ${user.sessionToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setIsAttending(result.data.isAttending);
+            setAttendeeCount(result.data.attendeeCount);
+          }
+        }
+      } catch (err) {
+        console.error('Error checking attendance:', err);
+        // Don't show error for initial check, just use defaults
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    checkAttendance();
+  }, [user?.sessionToken, eventId, isInitialized]);
 
   const joinEvent = async () => {
     if (!user?.sessionToken) {
