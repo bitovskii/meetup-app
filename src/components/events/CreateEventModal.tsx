@@ -100,13 +100,6 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
     }
   };
 
-  // Format date from YYYY-MM-DD to DD.MM.YYYY
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
-    return `${day}.${month}.${year}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -124,7 +117,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
     const submissionFormData = new FormData();
     submissionFormData.append('title', formData.title);
     submissionFormData.append('description', formData.description);
-    submissionFormData.append('date', formatDateForDisplay(formData.date));
+    submissionFormData.append('date', formData.date); // Send YYYY-MM-DD format directly
     submissionFormData.append('time', formData.time);
     submissionFormData.append('place', formData.place);
     
