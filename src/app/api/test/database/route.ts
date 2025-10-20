@@ -21,11 +21,11 @@ export async function GET() {
     // Test 1: Check if we can connect and get table list
     try {
       // Use a simpler approach to check tables
-      const { data: users, error: usersError } = await supabaseAdmin
+      const { error: usersError } = await supabaseAdmin
         .from('users')
         .select('count', { count: 'exact', head: true });
       
-      const { data: events, error: eventsError } = await supabaseAdmin
+      const { error: eventsError } = await supabaseAdmin
         .from('events')
         .select('count', { count: 'exact', head: true });
       

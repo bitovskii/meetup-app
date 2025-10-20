@@ -5,13 +5,13 @@ interface PendingAuthToken {
   token: string;
   status: 'pending' | 'success' | 'failed' | 'expired';
   expiresAt: Date;
-  userData?: any;
+  userData?: Record<string, unknown>;
   createdAt: Date;
 }
 
 class AuthTokenStore {
-  private tokens: Map<string, PendingAuthToken> = new Map();
-  private cleanupInterval: NodeJS.Timeout;
+  private readonly tokens: Map<string, PendingAuthToken> = new Map();
+  private readonly cleanupInterval: NodeJS.Timeout;
 
   constructor() {
     // Clean up expired tokens every minute
@@ -31,7 +31,7 @@ class AuthTokenStore {
   }
 
   // Update token status with user data
-  setSuccess(token: string, userData: any): void {
+  setSuccess(token: string, userData: Record<string, unknown>): void {
     const existing = this.tokens.get(token);
     if (existing && existing.status === 'pending' && new Date() < existing.expiresAt) {
       existing.status = 'success';

@@ -1,6 +1,16 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/database';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
+
+interface DatabaseUser {
+  id: string;
+  telegram_id?: number;
+  username?: string;
+  full_name: string;
+  email?: string;
+  avatar_url?: string;
+  status: string;
+}
 
 export interface AuthenticatedUser {
   id: string;
@@ -17,6 +27,17 @@ export interface AuthResult {
   success: boolean;
   user?: AuthenticatedUser;
   error?: string;
+}
+
+interface TelegramAuthData {
+  hash: string;
+  auth_date: number;
+  id?: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  photo_url?: string;
+  [key: string]: string | number | undefined;
 }
 
 /**
@@ -62,7 +83,7 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
     // Update last activity
     await db.updateSessionActivity(sessionToken);
 
-    const user = session.users as any;
+    const user = session.users as DatabaseUser;
     if (!user || user.status !== 'active') {
       return {
         success: false,
@@ -116,7 +137,7 @@ export async function createUserSession(
   loginMethod: string,
   metadata?: {
     telegramChatId?: number;
-    deviceInfo?: any;
+    deviceInfo?: Record<string, unknown>;
     ipAddress?: string;
     userAgent?: string;
   }
@@ -145,7 +166,7 @@ export async function createUserSession(
 /**
  * Verify Telegram authentication data
  */
-export function verifyTelegramAuth(authData: any, botToken: string): boolean {
+export function verifyTelegramAuth(authData: TelegramAuthData, botToken: string): boolean {
   try {
     const { hash, ...data } = authData;
     
@@ -197,7 +218,7 @@ export async function authenticateTelegramUser(telegramData: {
   username?: string;
   photo_url?: string;
   auth_date: number;
-}): Promise<{ user: any; sessionToken: string; expiresAt: Date }> {
+}): Promise<{ user: DatabaseUser; sessionToken: string; expiresAt: Date }> {
   // Check if user already exists
   const { data: existingUser, error } = await db.getUserByTelegramId(telegramData.id);
   

@@ -382,6 +382,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
               {/* Image Preview */}
               {imagePreview && (
                 <div className="mb-2 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Event preview"
