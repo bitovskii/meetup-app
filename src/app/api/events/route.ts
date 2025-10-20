@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import sharp from 'sharp';
 import { db } from '@/lib/database';
 import { authenticateRequest } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 import type { CreateEventData } from '@/types';
 
 // GET /api/events - Fetch all events
@@ -93,11 +92,7 @@ async function handleImageUpload(file: File): Promise<string> {
   }
 
   // Generate unique filename (always save as WebP for consistency and compression)
-  const uniqueName = `${crypto.randomUUID()}.webp`;
-  const uploadPath = join(process.cwd(), 'public', 'uploads', 'events', uniqueName);
-
-  // Ensure directory exists
-  await mkdir(join(process.cwd(), 'public', 'uploads', 'events'), { recursive: true });
+  const uniqueName = `events/${crypto.randomUUID()}.webp`;
 
   // Process image: resize and compress
   const processedBuffer = await sharp(buffer)
@@ -108,11 +103,31 @@ async function handleImageUpload(file: File): Promise<string> {
     .webp({ quality: 85 })
     .toBuffer();
 
-  // Save processed file
-  await writeFile(uploadPath, processedBuffer);
+  // Upload to Supabase Storage
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY! // Use service role key for server-side uploads
+  );
 
-  // Return the public URL path
-  return `/uploads/events/${uniqueName}`;
+  const { error } = await supabase.storage
+    .from('images')
+    .upload(uniqueName, processedBuffer, {
+      contentType: 'image/webp',
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) {
+    console.error('Supabase upload error:', error);
+    throw new Error('Failed to upload image to storage');
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('images')
+    .getPublicUrl(uniqueName);
+
+  return publicUrl;
 }
 
 // POST /api/events - Create new event
