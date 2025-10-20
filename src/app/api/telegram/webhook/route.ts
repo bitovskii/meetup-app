@@ -189,21 +189,16 @@ export async function POST(request: NextRequest) {
 
           // Create or update user in database and create session
           try {
-            const user = await db.createUser({
-              telegram_id: from.id,
+            const { authenticateTelegramUser } = await import('@/lib/auth');
+            const { user, sessionToken, expiresAt } = await authenticateTelegramUser({
+              id: from.id,
+              first_name: from.first_name,
+              last_name: from.last_name,
               username: from.username,
-              full_name: `${from.first_name} ${from.last_name || ''}`.trim(),
-              activation_method: 'telegram'
+              auth_date: Math.floor(Date.now() / 1000)
             });
-            console.log('User created/updated in database:', user.id);
             
-            // Create a session for the user
-            const { createUserSession } = await import('@/lib/auth');
-            const { sessionToken, expiresAt } = await createUserSession(
-              user.id,
-              'telegram',
-              { telegramChatId: from.id }
-            );
+            console.log('User authenticated/created in database:', user.id);
             
             // Create complete user data object with session information
             const userData = {
