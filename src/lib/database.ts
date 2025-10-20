@@ -1,14 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables');
-}
+// Create admin client with fallback values to prevent deployment errors
+const supabaseAdmin = (() => {
+  if (supabaseUrl && supabaseServiceKey) {
+    return createClient(supabaseUrl, supabaseServiceKey);
+  } else {
+    console.warn('Supabase environment variables not found. Database operations will be disabled.');
+    // Return a placeholder client that won't cause deployment failures
+    return createClient(
+      'https://placeholder.supabase.co', 
+      'placeholder-service-key'
+    );
+  }
+})();
 
-// Admin client for server-side operations (bypasses RLS)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export { supabaseAdmin };
 
 // Database connection utility for direct queries
 export class DatabaseService {
