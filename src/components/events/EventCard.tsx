@@ -1,5 +1,4 @@
-﻿import Image from 'next/image';
-import { useAuth } from '@/contexts/AuthContext';
+﻿import { useAuth } from '@/contexts/AuthContext';
 import { formatDateToDDMMYYYY, formatTimeTo24Hour } from '@/lib/utils';
 import type { Event } from '@/types';
 
@@ -26,12 +25,12 @@ export default function EventCard({
   return (
     <article className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200 w-80 flex flex-col focus-within:ring-2 focus-within:ring-blue-500">
       <div className="relative w-full aspect-video overflow-hidden">
-        <Image
+        {/* Use regular img tag for Supabase storage images to avoid Vercel optimization issues */}
+        <img
           src={image}
-          alt={`Event image for ${title}`}
-          fill
-          className="object-cover"
-          priority={false}
+          alt={title}
+          className="object-cover w-full h-full"
+          loading="lazy"
         />
       </div>
       
