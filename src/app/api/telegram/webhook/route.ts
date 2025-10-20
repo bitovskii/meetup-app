@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
           // Clean up the mapping
           callbackTokenMap.delete(shortId);
 
-          // Create or update user in database using the database service
+          // Create or update user in database and create session
           try {
             const user = await db.createUser({
               telegram_id: from.id,
@@ -209,8 +209,26 @@ export async function POST(request: NextRequest) {
               activation_method: 'telegram'
             });
             console.log('User created/updated in database:', user.id);
+            
+            // Create a session for the user
+            const { createUserSession } = await import('@/lib/auth');
+            const { sessionToken, expiresAt } = await createUserSession(
+              user.id,
+              'telegram',
+              { telegramChatId: from.id }
+            );
+            
+            // Update the auth token with session information
+            await authTokenService.setSuccess(token, {
+              ...userData,
+              sessionToken,
+              expiresAt: expiresAt.toISOString(),
+              userId: user.id
+            });
+            
+            console.log('Session created for user:', user.id);
           } catch (error) {
-            console.error('User creation error:', error);
+            console.error('User creation/session error:', error);
             // Continue even if user creation fails - the auth token is the important part
           }
           

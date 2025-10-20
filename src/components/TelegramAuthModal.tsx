@@ -7,7 +7,7 @@ import type { TelegramUser } from '@/types';
 interface TelegramAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (userData: TelegramUser) => void;
+  onSuccess: (userData: TelegramUser, sessionData?: { sessionToken: string; expiresAt: string }) => void;
 }
 
 export default function TelegramAuthModal({ isOpen, onClose, onSuccess }: TelegramAuthModalProps) {
@@ -64,7 +64,14 @@ export default function TelegramAuthModal({ isOpen, onClose, onSuccess }: Telegr
                 auth_date: user.auth_date || Math.floor(Date.now() / 1000),
                 hash: 'validated' // Add a default hash since this is validated through our system
               };
-              onSuccess(telegramUser);
+              
+              // Pass session data if available (from updated token data)
+              const sessionData = (user as any).sessionToken ? {
+                sessionToken: (user as any).sessionToken,
+                expiresAt: (user as any).expiresAt
+              } : undefined;
+              
+              onSuccess(telegramUser, sessionData);
               onClose();
             }, 1500);
           }

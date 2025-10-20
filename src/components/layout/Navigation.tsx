@@ -14,8 +14,8 @@ export default function Navigation() {
   const { user, isAuthenticated, signIn } = useAuth();
   const navRef = useRef<HTMLElement>(null);
 
-  const handleAuthSuccess = (userData: TelegramUser) => {
-    signIn(userData, 'telegram');
+  const handleAuthSuccess = (userData: TelegramUser, sessionData?: { sessionToken: string; expiresAt: string }) => {
+    signIn(userData, 'telegram', sessionData);
     setIsAuthModalOpen(false);
   };
 

@@ -31,7 +31,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     setIsLoading(false);
   }, []);
 
-  const signIn = (userData: TelegramUser, provider: 'telegram') => {
+  const signIn = (userData: TelegramUser, provider: 'telegram', sessionData?: { sessionToken: string; expiresAt: string }) => {
     const user: User = {
       id: userData.id,
       firstName: userData.first_name,
@@ -39,7 +39,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
       username: userData.username,
       photoUrl: userData.photo_url,
       provider,
-      loginTime: Date.now()
+      loginTime: Date.now(),
+      sessionToken: sessionData?.sessionToken,
+      sessionExpiresAt: sessionData?.expiresAt
     };
 
     setUser(user);

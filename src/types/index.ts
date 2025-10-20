@@ -76,12 +76,14 @@ export interface User {
   photoUrl?: string;
   provider: 'telegram';
   loginTime?: number;
+  sessionToken?: string;
+  sessionExpiresAt?: string;
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (userData: TelegramUser, provider: 'telegram') => void;
+  signIn: (userData: TelegramUser, provider: 'telegram', sessionData?: { sessionToken: string; expiresAt: string }) => void;
   signOut: () => void;
   isAuthenticated: boolean;
 }

@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Event, CreateEventData, UpdateEventData } from '@/types';
 
 export function useEventMutations() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const createEvent = async (eventData: CreateEventData | FormData): Promise<Event | null> => {
     try {
@@ -13,11 +15,20 @@ export function useEventMutations() {
       // Determine if we're sending FormData or JSON
       const isFormData = eventData instanceof FormData;
       
+      // Prepare headers with authentication
+      const headers: Record<string, string> = {};
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+      
+      // Add authorization header if user has session token
+      if (user?.sessionToken) {
+        headers['Authorization'] = `Bearer ${user.sessionToken}`;
+      }
+      
       const response = await fetch('/api/events', {
         method: 'POST',
-        headers: isFormData ? {} : {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: isFormData ? eventData : JSON.stringify(eventData),
       });
       
