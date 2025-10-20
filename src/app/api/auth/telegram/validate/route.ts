@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     if (tokenData.status === 'success' && tokenData.user_data) {
       console.log('🔍 VALIDATION: Returning user data:', {
         hasUserData: !!tokenData.user_data,
-        hasSessionToken: !!(tokenData.user_data as any).sessionToken,
+        hasSessionToken: 'sessionToken' in tokenData.user_data,
         userData: tokenData.user_data
       });
       

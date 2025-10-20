@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authTokenService } from '@/lib/auth-token-service';
-import { db } from '@/lib/database';
 
 interface TelegramUpdate {
   message?: {

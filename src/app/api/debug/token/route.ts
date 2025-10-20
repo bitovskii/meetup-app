@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
         status: tokenData?.status,
         hasUserData: !!tokenData?.user_data,
         userData: tokenData?.user_data,
-        hasSessionToken: !!(tokenData?.user_data as any)?.sessionToken,
-        sessionToken: (tokenData?.user_data as any)?.sessionToken,
-        expiresAt: (tokenData?.user_data as any)?.expiresAt
+        hasSessionToken: tokenData?.user_data ? 'sessionToken' in tokenData.user_data : false,
+        sessionToken: tokenData?.user_data?.sessionToken || null,
+        expiresAt: tokenData?.user_data?.expiresAt || null
       }
     });
 
