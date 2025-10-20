@@ -32,6 +32,9 @@ interface TelegramUpdate {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
+// Simple in-memory mapping for short-lived callback data
+const callbackTokenMap = new Map<string, string>();
+
 export async function POST(request: NextRequest) {
   try {
     if (!BOT_TOKEN) {
@@ -158,10 +161,18 @@ export async function POST(request: NextRequest) {
       console.log('Processing callback query - ID:', id, 'From:', from.first_name, 'Data:', data);
       
       try {
-        const [action, token] = data.split(':');
-        console.log('Parsed action:', action, 'token:', token);
+        const [action, shortId] = data.split(':');
+        console.log('Parsed action:', action, 'shortId:', shortId);
         
-        if (action === 'authorize') {
+        // Get the original token from our mapping
+        const token = callbackTokenMap.get(shortId);
+        
+        if (!token) {
+          await answerCallbackQuery(id, 'Токен не найден или устарел');
+          return NextResponse.json({ ok: true });
+        }
+        
+        if (action === 'auth') {
           console.log('🔥 AUTHORIZE BUTTON CLICKED! 🔥');
           console.log('Processing authorize callback for token:', token);
           
@@ -185,6 +196,9 @@ export async function POST(request: NextRequest) {
           // Update token with user data in token service
           await authTokenService.setSuccess(token, userData);
           console.log('Token updated successfully in token service');
+          
+          // Clean up the mapping
+          callbackTokenMap.delete(shortId);
 
           // Create or update user in database using the database service
           try {
@@ -228,6 +242,9 @@ export async function POST(request: NextRequest) {
         } else if (action === 'cancel') {
           // Update token status to cancelled in token service
           await authTokenService.setFailed(token);
+          
+          // Clean up the mapping
+          callbackTokenMap.delete(shortId);
           
           await answerCallbackQuery(id, 'Авторизация отменена');
           
@@ -284,11 +301,17 @@ async function sendAuthorizationMessage(chatId: number, firstName: string, token
 Чтобы продолжить авторизацию на сайте, нажмите на кнопку "Авторизоваться".
 Если вы не совершали никаких действий на сайте, или попали сюда в результате действий третьих лиц, нажмите на кнопку "Отмена".`;
 
+  // Generate a short GUID without dashes (32 characters)
+  const shortId = crypto.randomUUID().replaceAll('-', '');
+  
+  // Store the mapping
+  callbackTokenMap.set(shortId, token);
+  
   const keyboard = {
     inline_keyboard: [
       [
-        { text: '✅ Авторизоваться', callback_data: `authorize:${token}` },
-        { text: '❌ Отмена', callback_data: `cancel:${token}` }
+        { text: '✅ Авторизоваться', callback_data: `auth:${shortId}` },
+        { text: '❌ Отмена', callback_data: `cancel:${shortId}` }
       ]
     ]
   };
