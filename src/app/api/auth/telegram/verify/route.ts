@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyTelegramAuth, authenticateTelegramUser } from '@/lib/auth';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 interface TelegramAuthData {
   id: number;
@@ -51,12 +50,12 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const authData: TelegramAuthData = {
-      id: parseInt(searchParams.get('id') || '0'),
+      id: Number.parseInt(searchParams.get('id') || '0'),
       first_name: searchParams.get('first_name') || '',
       last_name: searchParams.get('last_name') || undefined,
       username: searchParams.get('username') || undefined,
       photo_url: searchParams.get('photo_url') || undefined,
-      auth_date: parseInt(searchParams.get('auth_date') || '0'),
+      auth_date: Number.parseInt(searchParams.get('auth_date') || '0'),
       hash: searchParams.get('hash') || ''
     };
 

@@ -15,7 +15,14 @@ export async function GET(request: NextRequest) {
     const offset = searchParams.get('offset') ? Number.parseInt(searchParams.get('offset')!) : undefined;
 
     // Build filters
-    const filters: any = {
+    const filters: {
+      isPublic?: boolean;
+      groupId?: string;
+      createdBy?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    } = {
       isPublic,
       status: 'scheduled' // Only show scheduled events
     };

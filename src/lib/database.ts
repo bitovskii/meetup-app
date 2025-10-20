@@ -12,7 +12,7 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 // Database connection utility for direct queries
 export class DatabaseService {
-  private client = supabaseAdmin;
+  private readonly client = supabaseAdmin;
 
   // User operations
   async createUser(userData: {
@@ -75,7 +75,7 @@ export class DatabaseService {
     user_id: string;
     session_token: string;
     telegram_chat_id?: number;
-    device_info?: any;
+    device_info?: Record<string, unknown>;
     ip_address?: string;
     user_agent?: string;
     login_method: string;
@@ -215,6 +215,43 @@ export class DatabaseService {
       .single();
     
     return { data, error };
+  }
+
+  async updateEvent(eventId: string, updateData: Partial<{
+    title: string;
+    description: string;
+    image_url: string;
+    date: string;
+    time: string;
+    location: string;
+    is_public: boolean;
+    group_id: string;
+    status: string;
+  }>) {
+    const { data, error } = await this.client
+      .from('events')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', eventId)
+      .select(`
+        *,
+        users!events_created_by_fkey (id, full_name, username, avatar_url),
+        groups (id, name, slug)
+      `)
+      .single();
+    
+    return { data, error };
+  }
+
+  async deleteEvent(eventId: string) {
+    const { error } = await this.client
+      .from('events')
+      .delete()
+      .eq('id', eventId);
+    
+    return { error };
   }
 
   // Group operations
