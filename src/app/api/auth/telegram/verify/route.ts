@@ -13,17 +13,6 @@ interface TelegramAuthData {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-// ENVIRONMENT DEBUG - Log all environment variables
-console.log('=== VERCEL ENVIRONMENT DEBUG ===');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('TELEGRAM_BOT_TOKEN exists:', !!process.env.TELEGRAM_BOT_TOKEN);
-console.log('NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:', process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME);
-console.log('NEXT_PUBLIC_APP_DOMAIN:', process.env.NEXT_PUBLIC_APP_DOMAIN);
-console.log('Expected domain: https://meetup-app-theta-steel.vercel.app');
-console.log('Domain match:', process.env.NEXT_PUBLIC_APP_DOMAIN === 'https://meetup-app-theta-steel.vercel.app');
-console.log('Deployment timestamp:', new Date().toISOString());
-console.log('=== END ENVIRONMENT DEBUG ===');
-
 // Add CORS headers for debugging
 function addCORSHeaders(response: NextResponse) {
   response.headers.set('Access-Control-Allow-Origin', '*');

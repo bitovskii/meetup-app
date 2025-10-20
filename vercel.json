@@ -1,23 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "framework": "nextjs",
-  "outputDirectory": ".next",
   "functions": {
     "src/app/api/telegram/webhook/route.ts": {
       "maxDuration": 10
     }
-  },
-  "headers": [
-    {
-      "source": "/api/telegram/webhook",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex"
-        }
-      ]
-    }
-  ]
+  }
 }
