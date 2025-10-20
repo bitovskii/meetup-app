@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Auth Token</title>
+</head>
+<body>
+    <h1>Debug Authentication</h1>
+    <button onclick="checkAuth()">Check Auth Data</button>
+    <pre id="output"></pre>
+
+    <script>
+        function checkAuth() {
+            const output = document.getElementById('output');
+            
+            // Check localStorage
+            const userData = localStorage.getItem('meetup_user');
+            
+            output.innerHTML = `
+=== localStorage Data ===
+Raw data: ${userData}
+
+=== Parsed User Object ===
+${userData ? JSON.stringify(JSON.parse(userData), null, 2) : 'No user data found'}
+
+=== Session Token Status ===
+${userData ? (JSON.parse(userData).sessionToken ? 'Session token EXISTS' : 'Session token MISSING') : 'No user data'}
+
+=== Session Expiry ===
+${userData && JSON.parse(userData).sessionExpiresAt ? 
+    `Expires: ${JSON.parse(userData).sessionExpiresAt}\nCurrent: ${new Date().toISOString()}\nValid: ${new Date(JSON.parse(userData).sessionExpiresAt) > new Date()}` : 
+    'No expiry data'}
+            `;
+        }
+        
+        // Auto-check on load
+        window.onload = checkAuth;
+    </script>
+</body>
+</html>

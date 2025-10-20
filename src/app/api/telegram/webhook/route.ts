@@ -184,19 +184,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ ok: true });
           }
 
-          // Create user data object
-          const userData = {
-            id: from.id,
-            username: from.username,
-            first_name: from.first_name,
-            last_name: from.last_name,
-            auth_date: Math.floor(Date.now() / 1000)
-          };
-
-          // Update token with user data in token service
-          await authTokenService.setSuccess(token, userData);
-          console.log('Token updated successfully in token service');
-          
           // Clean up the mapping
           callbackTokenMap.delete(shortId);
 
@@ -218,13 +205,20 @@ export async function POST(request: NextRequest) {
               { telegramChatId: from.id }
             );
             
-            // Update the auth token with session information
-            await authTokenService.setSuccess(token, {
-              ...userData,
+            // Create complete user data object with session information
+            const userData = {
+              id: from.id,
+              username: from.username,
+              first_name: from.first_name,
+              last_name: from.last_name,
+              auth_date: Math.floor(Date.now() / 1000),
               sessionToken,
               expiresAt: expiresAt.toISOString(),
               userId: user.id
-            });
+            };
+            
+            // Update token with complete user data including session
+            await authTokenService.setSuccess(token, userData);
             
             console.log('Session created for user:', user.id);
           } catch (error) {
