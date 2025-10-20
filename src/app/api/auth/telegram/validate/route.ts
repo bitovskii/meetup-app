@@ -1,4 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
+import { authTokenStore } from '@/lib/auth-token-store';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +13,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // For now, always return pending status
+    // Check token status in our store
+    const tokenData = authTokenStore.get(token);
+
+    if (!tokenData) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          status: 'expired'
+        }
+      });
+    }
+
+    if (tokenData.status === 'success' && tokenData.userData) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          status: 'success',
+          user: tokenData.userData
+        }
+      });
+    }
+
+    // Token exists but is still pending
     return NextResponse.json({
       success: true,
       data: {
