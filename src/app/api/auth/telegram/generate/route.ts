@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateSessionToken } from '@/lib/auth';
 import { generateTelegramDeepLink } from '@/lib/auth-utils';
-import { authTokenStore } from '@/lib/auth-token-store';
+import { authTokenService } from '@/lib/auth-token-service';
 import type { AuthTokenResponse } from '@/types';
 
 export async function POST(): Promise<NextResponse<AuthTokenResponse>> {
@@ -11,8 +11,8 @@ export async function POST(): Promise<NextResponse<AuthTokenResponse>> {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minute expiration for auth tokens
 
-    // Store token as pending in our token store
-    authTokenStore.setPending(token, expiresAt);
+    // Store token as pending in our token service
+    await authTokenService.setPending(token, expiresAt);
 
     // Generate deep link
     const deepLink = generateTelegramDeepLink(token);

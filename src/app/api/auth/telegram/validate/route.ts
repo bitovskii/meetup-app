@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { authTokenStore } from '@/lib/auth-token-store';
+import { authTokenService } from '@/lib/auth-token-service';
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check token status in our store
-    const tokenData = authTokenStore.get(token);
+    // Check token status in our service
+    const tokenData = await authTokenService.get(token);
 
     if (!tokenData) {
       return NextResponse.json({
@@ -25,12 +25,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (tokenData.status === 'success' && tokenData.userData) {
+    if (tokenData.status === 'success' && tokenData.user_data) {
       return NextResponse.json({
         success: true,
         data: {
           status: 'success',
-          user: tokenData.userData
+          user: tokenData.user_data
         }
       });
     }

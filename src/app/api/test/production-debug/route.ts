@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authTokenStore } from '@/lib/auth-token-store';
+import { authTokenService } from '@/lib/auth-token-service';
 
 export async function GET() {
   try {
@@ -13,26 +13,23 @@ export async function GET() {
       NODE_ENV: process.env.NODE_ENV
     };
     
-    // Test 2: Check token store functionality
+    // Test 2: Check token service functionality
     const testToken = 'prod_test_' + Date.now();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     
-    authTokenStore.setPending(testToken, expiresAt);
-    const tokenCheck = authTokenStore.get(testToken);
-    const tokenStoreWorking = !!tokenCheck && tokenCheck.status === 'pending';
+    await authTokenService.setPending(testToken, expiresAt);
+    const tokenCheck = await authTokenService.get(testToken);
+    const tokenServiceWorking = !!tokenCheck && tokenCheck.status === 'pending';
     
-    // Test 3: Check token store stats
-    const stats = authTokenStore.getStats();
-    
-    // Clean up
-    authTokenStore.remove(testToken);
+    // Test 3: Check token service stats
+    const stats = await authTokenService.getStats();
     
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
       environment: envCheck,
-      tokenStore: {
-        working: tokenStoreWorking,
+      tokenService: {
+        working: tokenServiceWorking,
         stats: stats
       },
       debug: {
@@ -60,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (action === 'check_token' && token) {
       console.log('🔍 Checking token in production:', token);
       
-      const tokenData = authTokenStore.get(token);
+      const tokenData = await authTokenService.get(token);
       
       return NextResponse.json({
         success: true,
@@ -68,11 +65,11 @@ export async function POST(request: NextRequest) {
         found: !!tokenData,
         data: tokenData ? {
           status: tokenData.status,
-          expiresAt: tokenData.expiresAt,
-          isExpired: new Date() > tokenData.expiresAt,
-          userData: tokenData.userData
+          expiresAt: tokenData.expires_at,
+          isExpired: new Date() > new Date(tokenData.expires_at),
+          userData: tokenData.user_data
         } : null,
-        stats: authTokenStore.getStats()
+        stats: await authTokenService.getStats()
       });
     }
     
@@ -82,7 +79,7 @@ export async function POST(request: NextRequest) {
       const testToken = 'live_test_' + Math.random().toString(36).substring(7);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
       
-      authTokenStore.setPending(testToken, expiresAt);
+      await authTokenService.setPending(testToken, expiresAt);
       
       return NextResponse.json({
         success: true,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authTokenStore } from '@/lib/auth-token-store';
+import { authTokenService } from '@/lib/auth-token-service';
 import { db } from '@/lib/database';
 
 interface TelegramUpdate {
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
           console.log('Token length:', token.length);
           console.log('=======================');
           
-          // Check if token exists in token store
-          const tokenData = authTokenStore.get(token);
+          // Check if token exists in token service
+          const tokenData = await authTokenService.get(token);
 
           if (!tokenData || tokenData.status !== 'pending') {
             console.log('=== TOKEN LOOKUP FAILED ===');
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
               searchCriteria: { token, status: 'pending' }
             });
             
-            // Get token store stats for debugging
-            const stats = authTokenStore.getStats();
+            // Get token service stats for debugging
+            const stats = await authTokenService.getStats();
             console.log('Token store stats:', stats);
             console.log('==========================');
             
@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
           console.log('Token found successfully:', {
             token: tokenData.token,
             status: tokenData.status,
-            created_at: tokenData.createdAt,
-            expires_at: tokenData.expiresAt
+            created_at: tokenData.created_at,
+            expires_at: tokenData.expires_at
           });
 
           console.log('Token is valid and not expired');
@@ -165,8 +165,8 @@ export async function POST(request: NextRequest) {
           console.log('🔥 AUTHORIZE BUTTON CLICKED! 🔥');
           console.log('Processing authorize callback for token:', token);
           
-          // Find the token in token store
-          const tokenData = authTokenStore.get(token);
+          // Find the token in token service
+          const tokenData = await authTokenService.get(token);
 
           if (!tokenData || tokenData.status !== 'pending') {
             await answerCallbackQuery(id, 'Token expired or invalid');
@@ -182,9 +182,9 @@ export async function POST(request: NextRequest) {
             auth_date: Math.floor(Date.now() / 1000)
           };
 
-          // Update token with user data in token store
-          authTokenStore.setSuccess(token, userData);
-          console.log('Token updated successfully in token store');
+          // Update token with user data in token service
+          await authTokenService.setSuccess(token, userData);
+          console.log('Token updated successfully in token service');
 
           // Create or update user in database using the database service
           try {
@@ -226,8 +226,8 @@ export async function POST(request: NextRequest) {
             console.log('Success message failed, but session is created');
           }
         } else if (action === 'cancel') {
-          // Update token status to cancelled in token store
-          authTokenStore.setFailed(token);
+          // Update token status to cancelled in token service
+          await authTokenService.setFailed(token);
           
           await answerCallbackQuery(id, 'Авторизация отменена');
           
