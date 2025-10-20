@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import sharp from 'sharp';
 import { db } from '@/lib/database';
 import { authenticateRequest } from '@/lib/auth';
 import type { CreateEventData } from '@/types';
@@ -72,6 +75,46 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Helper function to handle image upload
+async function handleImageUpload(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  // Validate file size (5MB limit)
+  const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+  if (buffer.length > maxSize) {
+    throw new Error('File size exceeds 5MB limit');
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only JPG, PNG, and WebP are allowed');
+  }
+
+  // Generate unique filename (always save as WebP for consistency and compression)
+  const uniqueName = `${crypto.randomUUID()}.webp`;
+  const uploadPath = join(process.cwd(), 'public', 'uploads', 'events', uniqueName);
+
+  // Ensure directory exists
+  await mkdir(join(process.cwd(), 'public', 'uploads', 'events'), { recursive: true });
+
+  // Process image: resize and compress
+  const processedBuffer = await sharp(buffer)
+    .resize(800, 600, {
+      fit: 'cover',
+      position: 'center'
+    })
+    .webp({ quality: 85 })
+    .toBuffer();
+
+  // Save processed file
+  await writeFile(uploadPath, processedBuffer);
+
+  // Return the public URL path
+  return `/uploads/events/${uniqueName}`;
+}
+
 // POST /api/events - Create new event
 export async function POST(request: NextRequest) {
   try {
@@ -84,7 +127,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const eventData: CreateEventData = await request.json();
+    // Check if request is FormData (with file upload) or JSON
+    const contentType = request.headers.get('content-type') || '';
+    let eventData: CreateEventData;
+    let imageUrl = '';
+
+    if (contentType.includes('multipart/form-data')) {
+      // Handle FormData with file upload
+      const formData = await request.formData();
+      
+      // Extract form fields
+      eventData = {
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        date: formData.get('date') as string,
+        time: formData.get('time') as string,
+        place: formData.get('place') as string,
+        image: '', // Will be set after upload
+        group_id: formData.get('group_id') as string || undefined
+      };
+
+      // Handle image upload if present
+      const imageFile = formData.get('image') as File;
+      if (imageFile && imageFile.size > 0) {
+        imageUrl = await handleImageUpload(imageFile);
+        eventData.image = imageUrl;
+      }
+    } else {
+      // Handle JSON request (existing functionality)
+      eventData = await request.json();
+    }
 
     // Validate required fields
     const requiredFields = ['title', 'description', 'date', 'time', 'place'];

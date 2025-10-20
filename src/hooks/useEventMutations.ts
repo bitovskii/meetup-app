@@ -5,17 +5,20 @@ export function useEventMutations() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createEvent = async (eventData: CreateEventData): Promise<Event | null> => {
+  const createEvent = async (eventData: CreateEventData | FormData): Promise<Event | null> => {
     try {
       setIsLoading(true);
       setError(null);
       
+      // Determine if we're sending FormData or JSON
+      const isFormData = eventData instanceof FormData;
+      
       const response = await fetch('/api/events', {
         method: 'POST',
-        headers: {
+        headers: isFormData ? {} : {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(eventData),
+        body: isFormData ? eventData : JSON.stringify(eventData),
       });
       
       const result = await response.json();

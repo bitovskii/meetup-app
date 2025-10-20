@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react';
 import { useEventMutations } from '@/hooks';
 import { useNotification } from '@/contexts/NotificationContext';
-import { supabase } from '@/lib/supabase';
 import type { CreateEventData } from '@/types';
 
 interface CreateEventModalProps {
@@ -55,64 +54,11 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
     return 'Create';
   };
 
-  // Upload image to Supabase storage
+  // Upload image to local storage (will be handled by the API)
   const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      setUploadingImage(true);
-      
-      // Create a unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `event-images/${fileName}`;
-
-      console.log('Attempting to upload:', { fileName, filePath, fileSize: file.size, fileType: file.type });
-
-      // Upload file to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        console.error('Supabase upload error:', error);
-        console.error('Error details:', {
-          message: error.message
-        });
-        
-        // Provide more specific error messages
-        if (error.message?.includes('Bucket not found')) {
-          throw new Error('Storage bucket not configured. Please set up Supabase storage first.');
-        } else if (error.message?.includes('Row Level Security')) {
-          throw new Error('Authentication required for upload. Please sign in first.');
-        } else if (error.message?.includes('not found')) {
-          throw new Error('Storage bucket "images" does not exist. Please create it in Supabase.');
-        }
-        
-        throw new Error(`Upload failed: ${error.message}`);
-      }
-
-      console.log('Upload successful:', data);
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('images')
-        .getPublicUrl(data.path);
-
-      console.log('Public URL generated:', urlData.publicUrl);
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      showNotification({
-        title: 'Upload Failed',
-        message: 'Failed to upload image. Please try again.',
-        type: 'error'
-      });
-      return null;
-    } finally {
-      setUploadingImage(false);
-    }
+    // This is now handled directly in the form submission
+    // Return a placeholder - the actual upload happens in handleSubmit
+    return 'placeholder';
   };
 
   // Handle image file selection
@@ -180,27 +126,24 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
       return;
     }
     
-    let imageUrl = formData.image;
+    // Create FormData for file upload
+    const submissionFormData = new FormData();
+    submissionFormData.append('title', formData.title);
+    submissionFormData.append('description', formData.description);
+    submissionFormData.append('date', formatDateForDisplay(formData.date));
+    submissionFormData.append('time', formData.time);
+    submissionFormData.append('place', formData.place);
     
-    // Upload image if a file is selected
-    if (imageFile) {
-      const uploadedUrl = await uploadImage(imageFile);
-      if (!uploadedUrl) {
-        // Upload failed, error notification already shown
-        return;
-      }
-      imageUrl = uploadedUrl;
+    if (formData.group_id) {
+      submissionFormData.append('group_id', formData.group_id);
     }
     
-    // Create formatted data for submission
-    const submissionData = {
-      ...formData,
-      image: imageUrl,
-      date: formatDateForDisplay(formData.date), // Convert to DD.MM.YYYY format
-      // Time is already in HH:MM format from select
-    };
+    // Add image file if selected
+    if (imageFile) {
+      submissionFormData.append('image', imageFile);
+    }
     
-    const result = await createEvent(submissionData);
+    const result = await createEvent(submissionFormData);
     if (result) {
       // Show success notification
       showNotification({
