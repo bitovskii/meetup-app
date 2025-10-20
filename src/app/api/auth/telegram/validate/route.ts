@@ -26,6 +26,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (tokenData.status === 'success' && tokenData.user_data) {
+      console.log('🔍 VALIDATION: Returning user data:', {
+        hasUserData: !!tokenData.user_data,
+        hasSessionToken: !!(tokenData.user_data as any).sessionToken,
+        userData: tokenData.user_data
+      });
+      
       return NextResponse.json({
         success: true,
         data: {

@@ -215,6 +215,15 @@ export async function POST(request: NextRequest) {
             // Update token with complete user data including session
             await authTokenService.setSuccess(token, userData);
             
+            console.log('✅ SUCCESS: User data stored in token service:', {
+              token: token.substring(0, 10) + '...',
+              userId: user.id,
+              hasSessionToken: !!userData.sessionToken,
+              sessionTokenPreview: userData.sessionToken?.substring(0, 10) + '...',
+              expiresAt: userData.expiresAt,
+              telegramId: userData.id
+            });
+            
             console.log('Session created for user:', user.id);
           } catch (error) {
             console.error('User creation/session error:', error);
