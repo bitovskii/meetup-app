@@ -393,6 +393,31 @@ export class DatabaseService {
     
     return { data, error };
   }
+
+  // Additional event attendee methods
+  async removeEventAttendee(eventId: string, userId: string) {
+    const { data, error } = await this.client
+      .from('event_attendees')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  async checkEventAttendance(eventId: string, userId: string) {
+    const { data, error } = await this.client
+      .from('event_attendees')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('user_id', userId)
+      .eq('status', 'going')
+      .single();
+    
+    return { data, error };
+  }
 }
 
 // Export singleton instance

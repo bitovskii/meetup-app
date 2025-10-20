@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 export { useEvents } from './useEvents';
 export { useEventMutations } from './useEventMutations';
 export { useTelegramAuth } from './useTelegramAuth';
+export { useEventAttendance } from './useEventAttendance';
 
 /**
  * Custom hook for managing loading states
