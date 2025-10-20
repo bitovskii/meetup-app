@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventsContext } from '@/contexts/EventsContext';
 import CreateEventModal from '@/components/events/CreateEventModal';
+import { UserAvatar } from '@/components/ui';
 import type { User } from '@/types';
 
 interface UserMenuProps {
@@ -56,23 +56,13 @@ export default function UserMenu({ user }: Readonly<UserMenuProps>) {
         aria-expanded={isUserMenuOpen}
         aria-haspopup="true"
       >
-        {user.photoUrl ? (
-          <div className="relative">
-            <Image 
-              src={user.photoUrl} 
-              alt="Profile" 
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full"
-            />
-          </div>
-        ) : (
-          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-white text-sm font-medium">
-              {user.firstName?.charAt(0)?.toUpperCase() || 'U'}
-            </span>
-          </div>
-        )}
+        <UserAvatar 
+          user={{
+            full_name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+            avatar_url: user.photoUrl
+          }}
+          size="sm"
+        />
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {user.firstName || 'User'}
         </span>

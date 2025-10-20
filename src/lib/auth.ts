@@ -234,6 +234,15 @@ export async function authenticateTelegramUser(telegramData: {
     });
   } else {
     user = existingUser;
+    // Update user's avatar if it has changed and we have a new photo URL
+    if (telegramData.photo_url && user.avatar_url !== telegramData.photo_url) {
+      console.log('📸 Updating user avatar URL:', {
+        oldUrl: user.avatar_url,
+        newUrl: telegramData.photo_url
+      });
+      await db.updateUserAvatar(user.id, telegramData.photo_url);
+      user.avatar_url = telegramData.photo_url;
+    }
   }
 
   // Create session

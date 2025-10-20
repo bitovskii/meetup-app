@@ -123,6 +123,16 @@ export async function POST(request: NextRequest) {
       console.log('Processing /auth command for token:', token);
       
       try {
+        // Fetch user's profile photo
+        const { getUserProfilePhotoUrl } = await import('@/lib/telegram-bot');
+        console.log('📸 Fetching profile photo for /auth command user:', user.id);
+        const photoUrl = await getUserProfilePhotoUrl(user.id);
+        if (photoUrl) {
+          console.log('📸 Profile photo found:', photoUrl);
+        } else {
+          console.log('📸 No profile photo available for user');
+        }
+        
         // Use simple external storage instead of in-memory sessions
         const authData = {
           token,
@@ -131,6 +141,7 @@ export async function POST(request: NextRequest) {
             first_name: user.first_name,
             last_name: user.last_name,
             username: user.username,
+            photo_url: photoUrl || undefined,
           }
         };
         
@@ -189,11 +200,23 @@ export async function POST(request: NextRequest) {
           // Create or update user in database and create session
           try {
             const { authenticateTelegramUser } = await import('@/lib/auth');
+            const { getUserProfilePhotoUrl } = await import('@/lib/telegram-bot');
+            
+            // Fetch user's profile photo
+            console.log('📸 Fetching profile photo for user:', from.id);
+            const photoUrl = await getUserProfilePhotoUrl(from.id);
+            if (photoUrl) {
+              console.log('📸 Profile photo found:', photoUrl);
+            } else {
+              console.log('📸 No profile photo available for user');
+            }
+            
             const { user, sessionToken, expiresAt } = await authenticateTelegramUser({
               id: from.id,
               first_name: from.first_name,
               last_name: from.last_name,
               username: from.username,
+              photo_url: photoUrl || undefined,
               auth_date: Math.floor(Date.now() / 1000)
             });
             

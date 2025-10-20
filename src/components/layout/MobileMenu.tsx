@@ -1,8 +1,8 @@
-import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventsContext } from '@/contexts/EventsContext';
 import { useState } from 'react';
 import CreateEventModal from '../events/CreateEventModal';
+import { UserAvatar } from '@/components/ui';
 
 interface MobileMenuProps {
   isMenuOpen: boolean;
@@ -43,21 +43,14 @@ export default function MobileMenu({ isMenuOpen, setIsMenuOpen, onOpenAuthModal 
             {isAuthenticated && user ? (
               <div className="space-y-2">
                 <div className="flex items-center px-3 py-2">
-                  {user.photoUrl ? (
-                    <Image 
-                      src={user.photoUrl} 
-                      alt="Profile" 
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full mr-3"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-white text-sm font-medium">
-                        {user.firstName?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                  )}
+                  <UserAvatar 
+                    user={{
+                      full_name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User',
+                      avatar_url: user.photoUrl
+                    }}
+                    size="sm"
+                    className="mr-3"
+                  />
                   <div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {user.firstName} {user.lastName}

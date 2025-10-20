@@ -79,6 +79,18 @@ export class DatabaseService {
     if (error) throw error;
   }
 
+  async updateUserAvatar(userId: string, avatarUrl: string) {
+    const { error } = await this.client
+      .from('users')
+      .update({ 
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+    
+    if (error) throw error;
+  }
+
   // Session operations
   async createSession(sessionData: {
     user_id: string;
