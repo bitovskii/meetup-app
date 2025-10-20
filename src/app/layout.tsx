@@ -22,7 +22,11 @@ export const metadata: Metadata = {
   description: "Discover and join events and groups in your area. Connect with like-minded people and build meaningful relationships.",
   keywords: "meetup, events, groups, community, networking, social",
   authors: [{name: "Meetup Team"}],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
