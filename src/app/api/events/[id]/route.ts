@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { db } from '@/lib/database';
+import { authenticateRequest } from '@/lib/auth';
 import type { UpdateEventData } from '@/types';
 
 // GET /api/events/[id] - Fetch single event
@@ -9,13 +10,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const { data: event, error } = await supabase
-      .from('events')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data: event, error } = await db.getEventById(id);
 
-    if (error) {
+    if (error || !event) {
       console.error('Error fetching event:', error);
       return NextResponse.json(
         { error: 'Event not found' },
@@ -23,7 +20,23 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ event });
+    // Transform database response to match frontend expectations
+    const transformedEvent = {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      image: event.image_url,
+      date: event.date,
+      time: event.time,
+      place: event.location,
+      members: event.attendee_count || 0,
+      creator_id: event.created_by,
+      group_id: event.group_id,
+      created_at: event.created_at,
+      updated_at: event.updated_at
+    };
+
+    return NextResponse.json({ event: transformedEvent });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(

@@ -21,8 +21,11 @@ export default function MobileMenu({ isMenuOpen, setIsMenuOpen, onOpenAuthModal 
   };
 
   const handleCreateEventClick = () => {
-    setIsCreateModalOpen(true);
     setIsMenuOpen(false);
+    // Small delay to ensure menu closes before modal opens
+    setTimeout(() => {
+      setIsCreateModalOpen(true);
+    }, 100);
   };
 
   const handleEventCreated = () => {

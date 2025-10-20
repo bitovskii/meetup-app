@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyTelegramAuth, authenticateTelegramUser } from '@/lib/auth';
 import crypto from 'crypto';
 
 interface TelegramAuthData {

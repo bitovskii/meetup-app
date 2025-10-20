@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import type { Event, DatabaseEvent } from '@/types';
+import type { Event } from '@/types';
 
 interface EventsContextType {
   events: Event[];
@@ -16,22 +16,6 @@ export function EventsProvider({ children }: Readonly<{ children: React.ReactNod
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Transform database event to client event format
-  const transformEvent = (dbEvent: DatabaseEvent): Event => ({
-    id: dbEvent.id,
-    title: dbEvent.title,
-    description: dbEvent.description,
-    date: dbEvent.date,
-    time: dbEvent.time,
-    place: dbEvent.place,
-    members: dbEvent.members,
-    image: dbEvent.image,
-    creator_id: dbEvent.creator_id,
-    group_id: dbEvent.group_id,
-    created_at: dbEvent.created_at,
-    updated_at: dbEvent.updated_at
-  });
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -55,8 +39,8 @@ export function EventsProvider({ children }: Readonly<{ children: React.ReactNod
       const result = await response.json();
       
       if (result.success && result.data) {
-        const transformedEvents = result.data.map(transformEvent);
-        setEvents(transformedEvents);
+        // API now returns properly formatted events, no transformation needed
+        setEvents(result.data);
       } else {
         setEvents([]);
       }
