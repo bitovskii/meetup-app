@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { authTokenStore } from '@/lib/auth-token-store';
+import { db } from '@/lib/database';
 
 interface TelegramUpdate {
   message?: {
@@ -65,32 +66,21 @@ export async function POST(request: NextRequest) {
           console.log('Token length:', token.length);
           console.log('=======================');
           
-          // Check if token exists in database
-          const { data: tokenData, error } = await supabase
-            .from('auth_tokens')
-            .select('*')
-            .eq('token', token)
-            .eq('status', 'pending')
-            .single();
+          // Check if token exists in token store
+          const tokenData = authTokenStore.get(token);
 
-          if (error || !tokenData) {
+          if (!tokenData || tokenData.status !== 'pending') {
             console.log('=== TOKEN LOOKUP FAILED ===');
             console.log('Token lookup failed:', {
               token,
-              error: error?.message || 'No error',
               tokenData: tokenData || 'No token data',
+              status: tokenData?.status || 'Token not found',
               searchCriteria: { token, status: 'pending' }
             });
             
-            // Let's also check if ANY tokens exist in the database
-            const { data: allTokens, error: allError } = await supabase
-              .from('auth_tokens')
-              .select('token, status, created_at')
-              .order('created_at', { ascending: false })
-              .limit(5);
-            
-            console.log('Recent tokens in database:', allTokens);
-            console.log('All tokens query error:', allError);
+            // Get token store stats for debugging
+            const stats = authTokenStore.getStats();
+            console.log('Token store stats:', stats);
             console.log('==========================');
             
             await sendErrorMessage(user.id);
@@ -100,30 +90,9 @@ export async function POST(request: NextRequest) {
           console.log('Token found successfully:', {
             token: tokenData.token,
             status: tokenData.status,
-            created_at: tokenData.created_at,
-            expires_at: tokenData.expires_at
+            created_at: tokenData.createdAt,
+            expires_at: tokenData.expiresAt
           });
-
-          // Check if token is expired
-          const now = new Date();
-          const expiresAt = new Date(tokenData.expires_at);
-          
-          if (now > expiresAt) {
-            console.log('Token expired:', {
-              token,
-              now: now.toISOString(),
-              expiresAt: expiresAt.toISOString(),
-              expired: true
-            });
-            
-            await supabase
-              .from('auth_tokens')
-              .update({ status: 'expired' })
-              .eq('token', token);
-            
-            await sendErrorMessage(user.id);
-            return NextResponse.json({ ok: true });
-          }
 
           console.log('Token is valid and not expired');
           
@@ -196,30 +165,11 @@ export async function POST(request: NextRequest) {
           console.log('🔥 AUTHORIZE BUTTON CLICKED! 🔥');
           console.log('Processing authorize callback for token:', token);
           
-          // Find the token in database
-          const { data: tokenData, error } = await supabase
-            .from('auth_tokens')
-            .select('*')
-            .eq('token', token)
-            .eq('status', 'pending')
-            .single();
+          // Find the token in token store
+          const tokenData = authTokenStore.get(token);
 
-          if (error || !tokenData) {
+          if (!tokenData || tokenData.status !== 'pending') {
             await answerCallbackQuery(id, 'Token expired or invalid');
-            return NextResponse.json({ ok: true });
-          }
-
-          // Check if token is expired
-          const now = new Date();
-          const expiresAt = new Date(tokenData.expires_at);
-          
-          if (now > expiresAt) {
-            await supabase
-              .from('auth_tokens')
-              .update({ status: 'expired' })
-              .eq('token', token);
-            
-            await answerCallbackQuery(id, 'Token expired');
             return NextResponse.json({ ok: true });
           }
 
@@ -232,49 +182,23 @@ export async function POST(request: NextRequest) {
             auth_date: Math.floor(Date.now() / 1000)
           };
 
-          // Update token with user data
-          const { error: updateError } = await supabase
-            .from('auth_tokens')
-            .update({
-              status: 'success',
-              user_data: userData,
-              telegram_user_id: from.id
-            })
-            .eq('token', token);
+          // Update token with user data in token store
+          authTokenStore.setSuccess(token, userData);
+          console.log('Token updated successfully in token store');
 
-          if (updateError) {
-            console.error('Token update error:', updateError);
-            console.error('Update details:', {
-              token,
-              userData,
-              telegram_user_id: from.id
+          // Create or update user in database using the database service
+          try {
+            const user = await db.createUser({
+              telegram_id: from.id,
+              username: from.username,
+              full_name: `${from.first_name} ${from.last_name || ''}`.trim(),
+              activation_method: 'telegram'
             });
-            await answerCallbackQuery(id, 'Database error');
-            return NextResponse.json({ ok: true });
+            console.log('User created/updated in database:', user.id);
+          } catch (error) {
+            console.error('User creation error:', error);
+            // Continue even if user creation fails - the auth token is the important part
           }
-
-          console.log('Token updated successfully in auth_tokens table');
-
-          // Store user session
-          const { error: sessionError } = await supabase
-            .from('user_sessions')
-            .upsert({
-              telegram_user_id: from.id,
-              user_data: userData
-            }, {
-              onConflict: 'telegram_user_id'
-            });
-
-          if (sessionError) {
-            console.error('User session error:', sessionError);
-            console.error('Session details:', {
-              telegram_user_id: from.id,
-              userData
-            });
-            // Continue even if session fails - the auth token is the important part
-          }
-          
-          console.log('Auth session updated successfully in database');
           
           // Delete the original authorization message
           try {
@@ -302,12 +226,9 @@ export async function POST(request: NextRequest) {
             console.log('Success message failed, but session is created');
           }
         } else if (action === 'cancel') {
-          // Update token status to cancelled in database
-          await supabase
-            .from('auth_tokens')
-            .update({ status: 'cancelled' })
-            .eq('token', token);
-            
+          // Update token status to cancelled in token store
+          authTokenStore.setFailed(token);
+          
           await answerCallbackQuery(id, 'Авторизация отменена');
           
           // Delete the original authorization message
