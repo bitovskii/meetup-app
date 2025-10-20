@@ -66,9 +66,10 @@ export default function TelegramAuthModal({ isOpen, onClose, onSuccess }: Telegr
               };
               
               // Pass session data if available (from updated token data)
-              const sessionData = (user as any).sessionToken ? {
-                sessionToken: (user as any).sessionToken,
-                expiresAt: (user as any).expiresAt
+              const userData = user as Record<string, unknown>;
+              const sessionData = userData.sessionToken ? {
+                sessionToken: userData.sessionToken as string,
+                expiresAt: userData.expiresAt as string
               } : undefined;
               
               onSuccess(telegramUser, sessionData);

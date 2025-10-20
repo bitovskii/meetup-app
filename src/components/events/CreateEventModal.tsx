@@ -17,7 +17,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  // Removed uploadingImage state since uploads are handled by the API
   const [formData, setFormData] = useState<CreateEventData>({
     title: '',
     description: '',
@@ -49,17 +49,11 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
 
   // Get button text based on state
   const getButtonText = () => {
-    if (uploadingImage) return 'Uploading...';
     if (isLoading) return 'Creating...';
     return 'Create';
   };
 
-  // Upload image to local storage (will be handled by the API)
-  const uploadImage = async (file: File): Promise<string | null> => {
-    // This is now handled directly in the form submission
-    // Return a placeholder - the actual upload happens in handleSubmit
-    return 'placeholder';
-  };
+  // Image upload is now handled directly by the API endpoint
 
   // Handle image file selection
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -362,14 +356,14 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: Readonl
                 type="button"
                 onClick={handleClose}
                 className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
-                disabled={isLoading || uploadingImage}
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading || uploadingImage}
+                disabled={isLoading}
               >
                 {getButtonText()}
               </button>
