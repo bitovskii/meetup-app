@@ -71,6 +71,8 @@ export function useEventAttendance({
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔄 Joining event:', eventId);
 
       const response = await fetch(`/api/events/${eventId}/join`, {
         method: 'POST',
@@ -80,22 +82,31 @@ export function useEventAttendance({
         }
       });
 
-      const result = await response.json();
-
+      console.log('🔄 Join response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to join event');
+        const errorText = await response.text();
+        console.error('🔄 Join failed with status:', response.status, errorText);
+        throw new Error(`Failed to join event (${response.status})`);
       }
+
+      const result = await response.json();
+      console.log('🔄 Join result:', result);
 
       if (result.success) {
         setIsAttending(true);
         setAttendeeCount(result.data.attendeeCount);
+        console.log('✅ Successfully joined event');
+      } else {
+        throw new Error(result.error || 'Join operation failed');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to join event';
       setError(errorMessage);
-      console.error('Error joining event:', err);
+      console.error('❌ Error joining event:', err);
     } finally {
       setIsLoading(false);
+      console.log('🔄 Join operation completed, loading:', false);
     }
   };
 
@@ -108,6 +119,8 @@ export function useEventAttendance({
     try {
       setIsLoading(true);
       setError(null);
+      
+      console.log('🔄 Leaving event:', eventId);
 
       const response = await fetch(`/api/events/${eventId}/join`, {
         method: 'DELETE',
@@ -117,22 +130,31 @@ export function useEventAttendance({
         }
       });
 
-      const result = await response.json();
+      console.log('🔄 Leave response status:', response.status);
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to leave event');
+        const errorText = await response.text();
+        console.error('🔄 Leave failed with status:', response.status, errorText);
+        throw new Error(`Failed to leave event (${response.status})`);
       }
+
+      const result = await response.json();
+      console.log('🔄 Leave result:', result);
 
       if (result.success) {
         setIsAttending(false);
         setAttendeeCount(result.data.attendeeCount);
+        console.log('✅ Successfully left event');
+      } else {
+        throw new Error(result.error || 'Leave operation failed');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to leave event';
       setError(errorMessage);
-      console.error('Error leaving event:', err);
+      console.error('❌ Error leaving event:', err);
     } finally {
       setIsLoading(false);
+      console.log('🔄 Leave operation completed, loading:', false);
     }
   };
 
